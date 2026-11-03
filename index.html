@@ -1445,6 +1445,7 @@ function admExtra(){
       '<label>Siklet<select data-wf="s">'+admSik(w.s)+'</select></label>'+
       '<label>Temsil ettiği yer<input data-wf="yer" value="'+esc(p.yer||"")+'"></label>'+
       '<label>Instagram (@ olmadan)<input data-wf="ig" value="'+esc(D.INSTAGRAM[w.ad]||"")+'"></label>'+
+      '<label>Favori hamle / stil<input data-wf="hamle" maxlength="80" value="'+esc(p.hamle||"")+'"></label>'+
       '<label>Antrenörü<select data-wf="ant"><option value="">— Yok —</option>'+D.ANTRENORLER.filter(function(c){return c.ad!==w.ad}).map(function(c){return '<option value="'+esc(c.ad)+'"'+(D.ANTRENOR[w.ad]===c.ad?' selected':'')+'>'+esc(c.ad)+'</option>'}).join("")+'</select></label></div>'+
       '<label class="ck"><input type="checkbox" data-wf="hk"'+(D.HAKEMLER.indexOf(w.ad)>=0?' checked':'')+'> Hakem</label>'+
       '<label>Hikâyesi<textarea data-wf="hik" rows="6">'+esc((p.hikaye||[]).join("\n\n"))+'</textarea></label>'+
@@ -1707,12 +1708,14 @@ document.addEventListener("change",function(e){
     if(ac&&antSikletCakisma(D,ac,w.ad)){delete D.ANTRENOR[w.ad];alert("Siklet değişti. "+ac+" antrenörünün yeni sikletinde zaten bir güreşçisi olduğu için antrenör atamasını kaldırdım. Bu güreşçinin maçlarını da kontrol et.")}
     else alert("Siklet değişti. Bu güreşçinin maçlarını kontrol et.");
   }
-  else if(f==="yer"||f==="hik"){
+  else if(f==="yer"||f==="hik"||f==="hamle"){
     var p=D.PROFIL[w.ad]||(D.PROFIL[w.ad]={yer:"",hikaye:[]});
-    if(f==="yer")p.yer=v;else p.hikaye=t.value.split(/\n\s*\n/).map(function(x){return x.trim()}).filter(Boolean);
-    if(!p.yer&&!p.hikaye.length&&!p.sarki)delete D.PROFIL[w.ad];
+    if(!Array.isArray(p.hikaye))p.hikaye=[];
+    if(f==="yer")p.yer=v;else if(f==="hamle"){if(v)p.hamle=v.slice(0,80);else delete p.hamle}else p.hikaye=t.value.split(/\n\s*\n/).map(function(x){return x.trim()}).filter(Boolean);
+    if(!p.yer&&!p.hikaye.length&&!p.sarki&&!p.hamle)delete D.PROFIL[w.ad];
   }else if(f==="sad"||f==="slink"){
     var p2=D.PROFIL[w.ad]||(D.PROFIL[w.ad]={yer:"",hikaye:[]}),s2=p2.sarki||{ad:"",dosya:""};
+    if(!Array.isArray(p2.hikaye))p2.hikaye=[];
     if(f==="sad")s2.ad=v;
     else if(v){
       var u2=mzLink(v);
@@ -1720,7 +1723,7 @@ document.addEventListener("change",function(e){
       s2.dosya=u2;
     }else s2.dosya="";
     if(s2.ad||s2.dosya)p2.sarki=s2;else delete p2.sarki;
-    if(!p2.yer&&!p2.hikaye.length&&!p2.sarki)delete D.PROFIL[w.ad];
+    if(!p2.yer&&!p2.hikaye.length&&!p2.sarki&&!p2.hamle)delete D.PROFIL[w.ad];
   }else if(f==="ig"){if(v)D.INSTAGRAM[w.ad]=v.replace(/^@/,"");else delete D.INSTAGRAM[w.ad]}
   else if(f==="ant"){
     if(v){
@@ -3336,7 +3339,7 @@ document.addEventListener("submit",async function(e){
          güreşçi yeniden kaydederse onun yeni düzenlemesi tekrar öne geçer. Favori hamle yönetici panelinde olmadığı için hep güreşçiden gelir. */
       var oz=+o.z||0,yTaslak=false;try{yTaslak=admin()&&!!localStorage.getItem("efcTaslak")}catch(e){}
       var yonYeni=yTaslak||(CANLI_Z&&CANLI_Z>=oz);
-      var yer=(iz.yer&&!yonYeni)?temiz(o.yer,LIM.yer):"",hk=(iz.hikaye&&!yonYeni)?temiz(o.hikaye,LIM.hikaye):"",hm=iz.hamle?temiz(o.hamle,LIM.hamle):"";
+      var yer=(iz.yer&&!yonYeni)?temiz(o.yer,LIM.yer):"",hk=(iz.hikaye&&!yonYeni)?temiz(o.hikaye,LIM.hikaye):"",hm=(iz.hamle&&!yonYeni)?temiz(o.hamle,LIM.hamle):"";
       if(!yer&&!hk&&!hm)return;
       var p=PROFIL[w.ad]=Object.assign({},PROFIL[w.ad]||{});
       if(yer)p.yer=yer;if(hk)p.hikaye=parcala(hk);if(hm)p.hamle=hm;
