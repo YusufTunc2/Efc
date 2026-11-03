@@ -3332,7 +3332,11 @@ document.addEventListener("submit",async function(e){
     var iz=izin();
     GURESCILER.forEach(function(w){
       var o=d[slug(w.ad)];if(!o||typeof o!=="object")return;
-      var yer=iz.yer?temiz(o.yer,LIM.yer):"",hk=iz.hikaye?temiz(o.hikaye,LIM.hikaye):"",hm=iz.hamle?temiz(o.hamle,LIM.hamle):"";
+      /* yönetim bu profili güreşçiden SONRA yayınladıysa (ya da yönetici taslakla düzenliyorsa) yer/hikâye için yönetimin verisi geçerli olur;
+         güreşçi yeniden kaydederse onun yeni düzenlemesi tekrar öne geçer. Favori hamle yönetici panelinde olmadığı için hep güreşçiden gelir. */
+      var oz=+o.z||0,yTaslak=false;try{yTaslak=admin()&&!!localStorage.getItem("efcTaslak")}catch(e){}
+      var yonYeni=yTaslak||(CANLI_Z&&CANLI_Z>=oz);
+      var yer=(iz.yer&&!yonYeni)?temiz(o.yer,LIM.yer):"",hk=(iz.hikaye&&!yonYeni)?temiz(o.hikaye,LIM.hikaye):"",hm=iz.hamle?temiz(o.hamle,LIM.hamle):"";
       if(!yer&&!hk&&!hm)return;
       var p=PROFIL[w.ad]=Object.assign({},PROFIL[w.ad]||{});
       if(yer)p.yer=yer;if(hk)p.hikaye=parcala(hk);if(hm)p.hamle=hm;
