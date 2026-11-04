@@ -29,7 +29,7 @@ h1,h2,h3{font-family:var(--display);font-weight:900;line-height:.92;margin:0;tex
 header{position:sticky;top:env(safe-area-inset-top,0px);z-index:11;background:rgba(11,14,23,.92);backdrop-filter:blur(8px);border-bottom:1px solid var(--line)}
 header .wrap{display:flex;align-items:center;justify-content:flex-start;gap:14px;height:56px}
 .logo{display:block;width:90px;height:28px;background:var(--logo) center/contain no-repeat}
-.menu-btn{background:none;border:0;padding:10px;margin-left:-10px;cursor:pointer;display:flex;flex-direction:column;gap:5px}
+.menu-btn{background:none;border:0;padding:10px;margin-left:-10px;cursor:pointer;display:flex;flex-direction:column;gap:5px;position:relative;z-index:12;min-width:44px;min-height:44px;align-items:center;justify-content:center;touch-action:manipulation}
 .menu-btn i{display:block;width:26px;height:3px;background:var(--bone)}
 .drawer{position:fixed;top:0;left:0;bottom:0;width:min(82vw,320px);background:var(--surface);border-right:1px solid var(--line);z-index:20;padding:calc(env(safe-area-inset-top,0px) + 18px) 22px 24px;transform:translateX(-100%);transition:transform .25s;visibility:hidden;overflow-y:auto}
 .drawer.open{transform:none;visibility:visible}
@@ -109,6 +109,78 @@ footer .wrap{display:flex;justify-content:space-between;flex-wrap:wrap;gap:10px}
   .count div{min-width:0;flex:1}
 }
 @media (prefers-reduced-motion:reduce){.fighter{animation:none}html{scroll-behavior:auto}}
+
+/* EFC görsel yenileme: ana ekran maç kartları + sporcu profilleri */
+.hero .card.big{display:grid;grid-template-columns:1fr;gap:16px;border:0;margin-top:30px}
+.hero .card.big li.home-match{display:grid;grid-template-columns:minmax(0,1fr);gap:16px;padding:20px 22px 18px;background:linear-gradient(135deg,rgba(229,2,9,.12),rgba(22,22,26,.96) 42%);border:1px solid #34343c;border-left:4px solid var(--gold);border-radius:10px;box-shadow:0 12px 30px rgba(0,0,0,.2)}
+.hm-top{display:flex;align-items:center;justify-content:space-between;gap:12px}
+.hm-top .cls{display:inline-flex;align-items:center;padding:6px 10px;border:1px solid rgba(229,2,9,.5);border-radius:4px;color:#ff777b;font-size:12px;font-weight:800;letter-spacing:.08em;text-transform:uppercase}
+.hm-label{font:700 12px var(--body);letter-spacing:.12em;color:var(--muted);text-transform:uppercase}
+.home-match .pair.yp{justify-content:center;gap:clamp(12px,4vw,34px);padding:4px 0}
+.home-match .yp .av{width:clamp(92px,15vw,150px);border-radius:8px;border-width:2px;box-shadow:0 8px 22px rgba(0,0,0,.25)}
+.home-match .yp .fn{font-size:clamp(20px,3.4vw,32px);max-width:13ch;overflow-wrap:anywhere}
+.home-match .yp i{font-size:clamp(24px,4vw,38px);font-style:normal;font-weight:900}
+.home-match .zaman{justify-content:space-between;gap:14px;padding-top:14px;border-top:1px solid var(--line)}
+.home-match .tarih{font-size:clamp(19px,3vw,27px)}
+.home-match .count{display:flex;gap:7px}
+.home-match .count div{min-width:58px;padding:7px 9px;border-radius:5px}
+.home-match .count b{font-size:27px}
+.home-match .f2f{margin-top:0;border-radius:6px}
+.home-match .hk{margin-top:0}
+.w .info{min-height:112px}
+.w .info .gor{font-size:12px;letter-spacing:.03em}
+.w-record{display:flex;align-items:center;gap:7px;flex-wrap:wrap;margin-top:10px;padding-top:9px;border-top:1px solid var(--line);font:700 12px var(--body);color:var(--muted)}
+.w-record b{color:var(--bone);font-size:13px}
+.w-record .wg{color:#8fd6a2}.w-record .wl{color:#ff8585}
+.pf{gap:24px 34px}
+.pf .ph{border-radius:10px;overflow:hidden;box-shadow:0 16px 36px rgba(0,0,0,.28)}
+.pf h2{letter-spacing:-.025em;margin-bottom:12px}
+.pf-intro{color:var(--muted);font-size:15px;margin:0 0 20px}
+.pf-tag{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;margin:0 0 16px}
+.pf-tag div{border-radius:7px;padding:13px 14px;min-width:0}
+.pf-tag small{font-size:11px;letter-spacing:.06em;text-transform:uppercase}
+.pf-tag b{display:block;font-size:clamp(20px,3vw,29px);margin-top:5px;overflow-wrap:anywhere}
+.pf-record{background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:15px 16px;margin:0 0 26px}
+.pf-record-head{display:flex;justify-content:space-between;gap:12px;align-items:center;margin-bottom:10px}
+.pf-record-head b{font:800 15px var(--body)}
+.pf-record-head span{font:800 15px var(--body);color:var(--gold)}
+.pf-bar{height:9px;background:#34343c;border-radius:20px;overflow:hidden;display:flex}
+.pf-bar-win{height:100%;background:#38a96a}
+.pf-bar-loss{height:100%;background:#d94b52}
+.pf-record-legend{display:flex;justify-content:space-between;gap:12px;margin-top:9px;color:var(--muted);font-size:12px}
+.pf-son{margin:22px 0 28px}
+.pf-son h3{font-size:25px;margin-bottom:12px}
+.pf-son-list{display:grid;gap:8px}
+.pf-son-row{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:10px 12px;background:var(--surface);border:1px solid var(--line);border-radius:6px}
+.pf-son-row span:first-child{font-weight:700}
+.pf-son-row small{color:var(--muted);display:block;font-size:11px;margin-top:2px}
+.pf-result{font:800 11px var(--body);padding:5px 8px;border-radius:4px;white-space:nowrap}
+.pf-result.win{background:rgba(56,169,106,.14);color:#8fd6a2}
+.pf-result.loss{background:rgba(217,75,82,.14);color:#ff8585}
+@media(max-width:700px){
+ .hero{padding:34px 0 42px}.hero .card.big{gap:12px}
+ .hero .card.big li.home-match{padding:15px 13px;gap:13px}
+ .home-match .yp .av{width:min(28vw,116px)}
+ .home-match .zaman{align-items:flex-start;flex-direction:column}
+ .home-match .count{width:100%}
+ .pf-tag{grid-template-columns:1fr 1fr}
+ .pf-tag div:last-child{grid-column:1/-1}
+ .pf-son-row{padding:9px 10px}
+}
+@media(max-width:380px){.home-match .hm-label{font-size:10px}.home-match .yp{gap:8px}.home-match .yp .fn{font-size:18px}}
+/* Maç listeleri: yaklaşan ve tamamlanan karşılaşmalar için net, dokunmatik kartlar */
+.card.num li.match-row{grid-template-columns:auto minmax(0,1fr) auto;gap:10px 14px;padding:16px 14px;margin:0 0 10px;background:linear-gradient(110deg,rgba(255,255,255,.035),rgba(22,22,26,.72));border:1px solid var(--line);border-left:3px solid var(--gold);border-radius:8px}
+.match-weight{align-self:start;padding:5px 8px;border:1px solid rgba(229,2,9,.42);border-radius:4px;color:#ff8588;font:800 11px/1.2 var(--body);letter-spacing:.04em;text-transform:uppercase;white-space:nowrap}
+.match-main{min-width:0}.match-main .pair{display:flex;flex-wrap:wrap;align-items:center;gap:4px 8px;font-size:clamp(19px,3vw,27px)}
+.match-status{align-self:center;text-align:right;color:var(--muted);font:600 12px/1.4 var(--body);max-width:150px}
+.match-status b{display:block;color:var(--bone);font-size:14px}
+.match-row.is-past{border-left-color:#38a96a;background:linear-gradient(110deg,rgba(56,169,106,.07),rgba(22,22,26,.72))}
+.match-row.is-past .match-status b{color:#8fd6a2}
+.pf-next{margin:0 0 22px;padding:14px 16px;border:1px solid rgba(229,2,9,.4);border-left:3px solid var(--gold);border-radius:7px;background:rgba(229,2,9,.07)}
+.pf-next small{display:block;color:var(--muted);font:700 11px var(--body);letter-spacing:.08em;text-transform:uppercase;margin-bottom:5px}
+.pf-next b{display:block;font:800 19px/1.25 var(--body);overflow-wrap:anywhere}
+.pf-next span{display:block;color:var(--muted);font-size:13px;margin-top:5px}
+@media(max-width:640px){.card.num li.match-row{grid-template-columns:1fr auto;padding:13px 11px;gap:9px}.match-weight{grid-column:1/-1;justify-self:start}.match-status{max-width:115px}.match-main .pair{font-size:19px}.pf-next{padding:12px}}
 
 /* --- yeni: puan tablosu, güreşçi kartları --- */
 .drawer a.item{font-size:30px;padding:12px 0}
@@ -881,10 +953,12 @@ var PROFIL={
 if(VERI&&VERI.PROFIL&&typeof VERI.PROFIL==="object")PROFIL=VERI.PROFIL;
 /* güreşçi kartları */
 function kart(w){
-  var pr=PROFIL[w.ad];
-  var ic='<div class="ph"><b aria-hidden="true">'+esc(w.ad.charAt(0))+'</b>'+
-    '<img src="'+fsrc(w.ad,"")+'" alt="'+esc(w.ad)+'" loading="lazy" onerror="fotoHata(this)"></div>'+
-    '<div class="info"><h3>'+esc(w.ad)+'</h3><p>'+ETIKET[w.s]+'</p>'+'<span class="gor">'+(pr?'Hikayesini oku →':'Profili gör →')+'</span></div>';
+  var pr=PROFIL[w.ad],oy=w.g+w.m;
+  var ic='<div class="ph"><b aria-hidden="true">'+esc(w.ad.charAt(0))+'</b>'+ 
+    '<img src="'+fsrc(w.ad,"")+'" alt="'+esc(w.ad)+'" loading="lazy" onerror="fotoHata(this)"></div>'+ 
+    '<div class="info"><h3>'+esc(w.ad)+'</h3><p>'+ETIKET[w.s]+'</p>'+ 
+    '<div class="w-record"><span class="wg">G <b>'+w.g+'</b></span><span>·</span><span class="wl">M <b>'+w.m+'</b></span><span>·</span><span>'+oy+' maç</span></div>'+ 
+    '<span class="gor">'+(pr?'Profili incele →':'Profili gör →')+'</span></div>';
   return '<a class="w" href="#guresci/'+slug(w.ad)+'">'+ic+'</a>';
 }
 function profilBul(sl){
@@ -903,15 +977,23 @@ function roller(ad){
 function profilCiz(w){
   var p=PROFIL[w.ad]||{yer:"Yakında",hikaye:["Bu güreşçinin hikâyesi yakında eklenecek."]};
   if(!p.yer||!(p.hikaye&&p.hikaye.length))p={yer:p.yer||"Yakında",hikaye:(p.hikaye&&p.hikaye.length)?p.hikaye:["Bu güreşçinin hikâyesi yakında eklenecek."],sarki:p.sarki};
+  var toplam=w.g+w.m,oran=toplam?Math.round(w.g/toplam*100):0;
+  var sonraki=YAKIN.filter(function(x){return x.a===w.ad||x.b===w.ad}).slice().sort(function(a,b){return Date.parse(a.t)-Date.parse(b.t)})[0];
+  var sonrakiHtml=sonraki?'<div class="pf-next"><small>Sıradaki karşılaşma</small><b>'+esc(sonraki.a===w.ad?sonraki.b:sonraki.a)+' ile karşılaşacak</b><span>'+ETIKET[sonraki.s]+' · '+esc(sonraki.d||"Tarih bekleniyor")+'</span></div>':'';
+  var son=GECMIS.filter(function(x){return x.a===w.ad||x.b===w.ad}).slice().reverse().slice(0,5);
+  var sonHtml=son.length?'<div class="pf-son"><h3>Son maçları</h3><div class="pf-son-list">'+son.map(function(x){var rakip=x.a===w.ad?x.b:x.a,kazandi=x.k===w.ad;return '<div class="pf-son-row"><div><span>'+esc(rakip)+'</span><small>'+ETIKET[x.s]+'</small></div><span class="pf-result '+(kazandi?'win':'loss')+'">'+(kazandi?'GALİBİYET':'MAĞLUBİYET')+'</span></div>'}).join('')+'</div></div>':'<div class="pf-son"><h3>Son maçları</h3><p class="bos">Henüz kayıtlı maç bulunmuyor.</p></div>';
   document.getElementById("profil").innerHTML=
-    '<a class="geri" href="#'+esc(GERI)+'">← Geri</a>'+
-    '<div class="pf"><div class="ph"><b aria-hidden="true">'+esc(w.ad.charAt(0))+'</b>'+
-    '<img src="'+fsrc(w.ad,"")+'" alt="'+esc(w.ad)+'" onerror="fotoHata(this)"></div>'+
-    '<div><h2>'+esc(w.ad)+'</h2>'+roller(w.ad)+
+    '<a class="geri" href="#'+esc(GERI)+'">← Geri</a>'+ 
+    '<div class="pf"><div class="ph"><b aria-hidden="true">'+esc(w.ad.charAt(0))+'</b>'+ 
+    '<img src="'+fsrc(w.ad,"")+'" alt="'+esc(w.ad)+'" onerror="fotoHata(this)"></div>'+ 
+    '<div><h2>'+esc(w.ad)+'</h2><p class="pf-intro">EFC güreşçi profili · '+ETIKET[w.s]+'</p>'+roller(w.ad)+
     (p.sarki&&p.sarki.dosya?'<div class="pf-rol"><span>♪ Profil şarkısı: '+esc(p.sarki.ad||"Şarkı")+'</span></div>':'')+'<div class="pf-tag">'+
-    '<div><small>Temsil ettiği yer</small><b>'+esc(p.yer)+'</b></div>'+
-    '<div><small>Siklet</small><b>'+ETIKET[w.s]+'</b></div>'+
-    '<div><small>Galibiyet / Yenilgi</small><b>'+w.g+' / '+w.m+'</b></div></div>'+
+    '<div><small>Temsil ettiği yer</small><b>'+esc(p.yer)+'</b></div>'+ 
+    '<div><small>Siklet</small><b>'+ETIKET[w.s]+'</b></div>'+ 
+    '<div><small>Toplam maç</small><b>'+toplam+'</b></div></div>'+ 
+    '<div class="pf-record"><div class="pf-record-head"><b>Maç karnesi</b><span>%'+oran+' galibiyet</span></div>'+ 
+    '<div class="pf-bar" role="img" aria-label="Galibiyet yüzde '+oran+'"><span class="pf-bar-win" style="width:'+oran+'%"></span><span class="pf-bar-loss" style="width:'+(100-oran)+'%"></span></div>'+ 
+    '<div class="pf-record-legend"><span>✓ '+w.g+' Galibiyet</span><span>✕ '+w.m+' Mağlubiyet</span></div></div>'+sonrakiHtml+sonHtml+
     '<div class="pf-hikaye"><h3>Hikâyesi</h3>'+p.hikaye.map(function(t){return '<p>'+esc(t)+'</p>'}).join("")+'</div></div></div>';
 }
 function doldur(id,liste){document.getElementById(id).innerHTML=liste.map(kart).join("")}
@@ -1059,10 +1141,10 @@ function gecmisCift(x){
     '<i>vs</i>'+fg(x.b,(kb?' win':' lose')+' r','<span class="fn">'+esc(x.b)+'</span>'+av(x.b))+'</span>';
 }
 document.getElementById("yakinList").innerHTML=YAKIN.map(function(x){
-  return '<li><span class="cls">'+ETIKET[x.s]+'</span>'+yakinCift(x)+
-    '<div class="zaman"><div class="tarih">'+esc(x.d)+'</div><div class="count" data-t="'+esc(x.t)+'"></div></div>'+
-    '<div class="f2f"><div class="f2fh"><b>Face to face</b><span class="tarih">'+esc(f2fYazi(x.t))+'</span></div>'+
-    '<div class="count" data-f="'+esc(f2fZaman(x.t).toISOString())+'" data-a="'+esc(x.a)+'" data-b="'+esc(x.b)+'"></div></div>'+
+  return '<li class="home-match"><div class="hm-top"><span class="cls">'+ETIKET[x.s]+'</span><span class="hm-label">EFC · Sıradaki karşılaşma</span></div>'+yakinCift(x)+
+    '<div class="zaman"><div class="tarih">'+esc(x.d)+'</div><div class="count" data-t="'+esc(x.t)+'"></div></div>'+ 
+    '<div class="f2f"><div class="f2fh"><b>Face to face</b><span class="tarih">'+esc(f2fYazi(x.t))+'</span></div>'+ 
+    '<div class="count" data-f="'+esc(f2fZaman(x.t).toISOString())+'" data-a="'+esc(x.a)+'" data-b="'+esc(x.b)+'"></div></div>'+ 
     '<div class="hk">'+hk("Hakem",x.hakem)+hk("Teknik hakem",x.teknik)+'</div></li>';
 }).join("")||'<li class="bos">Yakında maç yok.</li>';
 /* GERÇEK FOTOĞRAFTAN SİLÜET: güreşçinin fotoğrafı (panelden yüklenen ya da fotolar/isim.jpg) yüklenir, arka plan kenarlardan başlayarak ayrılır,
@@ -1221,7 +1303,8 @@ function macListe(prefix,dizi,gecmis){
   ["hafif","orta","agir"].forEach(function(k){
     var l=dizi.filter(function(x){return x.s===k});
     document.getElementById(prefix+k.charAt(0).toUpperCase()+k.slice(1)).innerHTML=l.length?l.map(function(x){
-      return '<li>'+(gecmis?gecmisCift(x):cift(x,gecmis))+(gecmis?'<span class="kz"><small>'+(x.y==="hakem"?"Hakem kararı ile kazanan":"Submission ile kazanan")+'</small>'+esc(x.k)+'</span>':'<span class="tbd">Tarih belirlenmedi</span>')+'</li>';
+      var durum=gecmis?'<span class="match-status"><small>'+(x.y==="hakem"?"Hakem kararı":"Submission")+'</small><b>🏆 '+esc(x.k||"Kazanan belirtilmedi")+'</b></span>':'<span class="match-status"><small>Karşılaşma</small><b>Tarih bekleniyor</b></span>';
+      return '<li class="match-row '+(gecmis?'is-past':'is-upcoming')+'"><span class="match-weight">'+ETIKET[x.s]+'</span><div class="match-main">'+(gecmis?gecmisCift(x):cift(x,false))+'</div>'+durum+'</li>';
     }).join(""):'<li class="bos">Maç yok.</li>';
   });
 }
@@ -2803,10 +2886,19 @@ document.addEventListener("submit",async function(e){
 
 (function(){
   var btn=document.getElementById("menuBtn"),dr=document.getElementById("drawer"),sc=document.getElementById("scrim");
-  function set(o){dr.classList.toggle("open",o);sc.classList.toggle("open",o);btn.setAttribute("aria-expanded",o?"true":"false")}
-  btn.addEventListener("click",function(){set(!dr.classList.contains("open"))});
-  sc.addEventListener("click",function(){set(false)});
+  if(!btn||!dr||!sc)return;
+  function set(o){
+    dr.classList.toggle("open",!!o);sc.classList.toggle("open",!!o);
+    btn.setAttribute("aria-expanded",o?"true":"false");
+    btn.setAttribute("aria-label",o?"Menüyü kapat":"Menüyü aç");
+    dr.setAttribute("aria-hidden",o?"false":"true");
+    sc.setAttribute("aria-hidden",o?"false":"true");
+  }
+  /* Dokunmatik cihazlarda da tek dokunuşla aç/kapat; olay başka dinleyicilerce yutulmasın. */
+  btn.addEventListener("click",function(e){e.preventDefault();e.stopPropagation();set(!dr.classList.contains("open"))},{passive:false});
+  sc.addEventListener("click",function(e){e.preventDefault();set(false)});
   document.addEventListener("keydown",function(e){if(e.key==="Escape")set(false)});
+  set(false);
   var pages=["anaekran","maclar","gecmis","puan","guresciler","guresci","hafif","orta","agir","hakemler","antrenorler","yonetim","yonetici","oduller","hakkinda","duyurular","sohbet","istek","sikayetler","mactalebi","mactalepleri","onaylar","anketsonuc"];
   var simdi=null,Y={};   /* simdi: açık sayfa, Y: sayfalardaki kaydırma konumu */
   function show(p){
