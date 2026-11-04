@@ -495,6 +495,22 @@ body.kilit-adm #kilitGeri{display:block}
 .drawer-foot span{color:#e50209;padding:0 4px}
 @media(max-width:420px){.drawer{width:min(88vw,340px)}.drawer a.item{min-height:40px;font-size:14px}}
 
+
+
+/* EFC FIX: mobil menü, yapışkan yönetim yayınlama çubuğunun üstünde kalmalı */
+.drawer,
+.drawer.open { z-index: 60 !important; }
+.scrim,
+.scrim.open { z-index: 59 !important; }
+#admKutu > .adm-top { z-index: 8 !important; }
+@media (max-width: 640px) {
+  .drawer {
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+    overscroll-behavior: contain;
+  }
+}
+
 </style>
 </head>
 <body>
