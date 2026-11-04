@@ -496,19 +496,50 @@ body.kilit-adm #kilitGeri{display:block}
 @media(max-width:420px){.drawer{width:min(88vw,340px)}.drawer a.item{min-height:40px;font-size:14px}}
 
 
-
-/* EFC FIX: mobil menü, yapışkan yönetim yayınlama çubuğunun üstünde kalmalı */
-.drawer,
-.drawer.open { z-index: 60 !important; }
-.scrim,
-.scrim.open { z-index: 59 !important; }
-#admKutu > .adm-top { z-index: 8 !important; }
-@media (max-width: 640px) {
-  .drawer {
-    overflow-y: auto;
-    -webkit-overflow-scrolling: touch;
-    overscroll-behavior: contain;
+/* EFC düzeltme: maç listelerinde sıra numarası da grid öğesi olduğu için
+   dört gerçek sütun tanımlanır; geçmiş maç eşleşmesi geniş alanda yan yana kalır. */
+.card.num li.match-row{
+  grid-template-columns:32px minmax(112px,auto) minmax(0,1fr) minmax(125px,auto);
+  gap:10px 14px;
+  align-items:center;
+}
+.card.num li.match-row::before{
+  grid-column:1;
+  grid-row:1;
+  align-self:center;
+  justify-self:start;
+}
+.card.num li.match-row .match-weight{grid-column:2;grid-row:1;align-self:center}
+.card.num li.match-row .match-main{grid-column:3;grid-row:1;min-width:0}
+.card.num li.match-row .match-status{grid-column:4;grid-row:1;min-width:0}
+.card.num li.match-row .match-main .pair{min-width:0}
+.card.num li.match-row .match-main .pair.yp.sm{
+  flex-wrap:nowrap;
+  justify-content:flex-start;
+  gap:10px;
+}
+.card.num li.match-row .yp.sm .av{width:62px}
+.card.num li.match-row .yp.sm .fn{font-size:clamp(15px,1.5vw,20px)}
+.card.num li.match-row .yp.sm i{font-size:20px}
+@media(max-width:640px){
+  .card.num li.match-row{
+    grid-template-columns:28px minmax(0,1fr);
+    gap:8px 10px;
+    padding:12px 10px;
   }
+  .card.num li.match-row::before{grid-column:1;grid-row:1;align-self:center}
+  .card.num li.match-row .match-weight{grid-column:2;grid-row:1;justify-self:start}
+  .card.num li.match-row .match-main{grid-column:2;grid-row:2}
+  .card.num li.match-row .match-status{
+    grid-column:2;grid-row:3;
+    justify-self:start;text-align:left;max-width:none;
+  }
+  .card.num li.match-row .match-main .pair.yp.sm{
+    flex-wrap:wrap;justify-content:flex-start;gap:8px 12px;
+  }
+  .card.num li.match-row .yp.sm .av{width:min(18vw,64px)}
+  .card.num li.match-row .yp.sm .fn{font-size:16px}
+  .card.num li.match-row .yp.sm i{font-size:18px}
 }
 
 </style>
@@ -1414,7 +1445,11 @@ function admKopya(){
   return {YAKIN:YAKIN.map(c),MACLAR:MACLAR.map(c),GECMIS:GECMIS.map(c),GURESCILER:GURESCILER.map(function(w){return {ad:w.ad,s:w.s}}),HAKEMLER:HAKEMLER.slice(),ANTRENORLER:ANTRENORLER.map(function(c){return {ad:c.ad}}),ANTRENOR:cp(ANTRENOR),YONETIM:cp(YONETIM),INSTAGRAM:cp(INSTAGRAM),PROFIL:cp(PROFIL),FOTO:cp(FOTO),HAKKINDA:HAKKINDA.slice(),MUZIK:MUZIK.map(function(m){return {ad:m.ad,dosya:m.dosya}}),GIRISMUZIK:GMUZIK.map(function(m){return {ad:m.ad,dosya:m.dosya}}),YETKILI:cp(YETKILI),PROFILIZIN:profIzin(PROFILIZIN),ANKET:cp(ANKET)};
 }
 function admKaydet(){
-  try{localStorage.setItem("efcTaslak",JSON.stringify(ADM_D))}catch(e){alert("Taslak bu tarayıcıda kaydedilemedi.")}
+  try{
+    localStorage.setItem("efcTaslak",JSON.stringify(ADM_D));
+    localStorage.setItem("efcTaslakZaman",String(Date.now()));
+    admDurumGuncelle();
+  }catch(e){alert("Taslak bu tarayıcıda kaydedilemedi.")}
 }
 function ag(){return ADM_D?ADM_D.GURESCILER:GURESCILER}
 function admSik(v){
@@ -1448,6 +1483,34 @@ function admSatir(l,x,i){
   if(l==="mac")h+='<button class="abtn alt" type="button" data-act="yakina">Yakın maçlara taşı</button>';
   return h+'<button class="abtn alt" type="button" data-act="sil">Sil</button></div></div>';
 }
+function admDurumGuncelle(){
+  var d=document.getElementById("admDurumTaslak");
+  if(d){
+    var varTaslak=false,z=0;
+    try{varTaslak=!!localStorage.getItem("efcTaslak");z=+(localStorage.getItem("efcTaslakZaman")||0)}catch(e){}
+    d.className="adm-status-value "+(varTaslak?"is-pending":"is-clean");
+    d.textContent=varTaslak?(z?"Taslak kaydedildi · "+new Date(z).toLocaleString("tr-TR"):"Kayıtlı taslak mevcut"):"Taslak yok · Yayındaki veri";
+  }
+}
+async function admFirebaseKontrol(){
+  var s=document.getElementById("admDurumFirebase"),t=document.getElementById("admDurumYayin");
+  if(s){s.className="adm-status-value is-checking";s.textContent="Bağlantı kontrol ediliyor…"}
+  if(t)t.textContent="Kontrol ediliyor…";
+  if(!FB_URL){
+    if(s){s.className="adm-status-value is-error";s.textContent="Firebase adresi tanımlı değil"}
+    if(t)t.textContent="—";return;
+  }
+  try{
+    var r=await fetch(FB_URL.replace(/\/$/,"")+"/veriz.json",{cache:"no-store"});
+    if(!r.ok)throw new Error("HTTP "+r.status);
+    var z=await r.json();
+    if(s){s.className="adm-status-value is-ok";s.textContent="Firebase erişilebilir"}
+    if(t)t.textContent=z?new Date(+z).toLocaleString("tr-TR"):"Henüz yayın kaydı yok";
+  }catch(e){
+    if(s){s.className="adm-status-value is-error";s.textContent="Bağlantı doğrulanamadı"}
+    if(t)t.textContent="Son yayın bilgisi alınamadı";
+  }
+}
 function admCiz(){
   var el=document.getElementById("admKutu");if(!el)return;
   var acikBolum=el.querySelector(".adm-group[open]");
@@ -1471,6 +1534,12 @@ function admCiz(){
   var h='<h2>Yönetici paneli</h2>'+
     '<div class="adm-note">'+(taslak?'<b>Taslak var.</b> Yaptığın değişiklikleri sadece sen görüyorsun.':'Taslak yok, şu an yayındaki veriyi görüyorsun.')+
     ' Değişiklikler önce sadece sende (taslak) durur. <b>Yayınla</b>ya basınca herkese anında görünür, Netlify\'a yüklemen gerekmez.</div>'+
+    '<div class="adm-status-grid" aria-live="polite">'+
+      '<div class="adm-status-card"><span class="adm-status-label">TASLAK DURUMU</span><strong id="admDurumTaslak" class="adm-status-value">Kontrol ediliyor…</strong></div>'+
+      '<div class="adm-status-card"><span class="adm-status-label">FIREBASE</span><strong id="admDurumFirebase" class="adm-status-value is-checking">Bağlantı kontrol ediliyor…</strong></div>'+
+      '<div class="adm-status-card"><span class="adm-status-label">SON YAYIN</span><strong id="admDurumYayin" class="adm-status-value">Kontrol ediliyor…</strong></div>'+
+      '<button class="abtn alt adm-check-btn" type="button" data-act="firebase-kontrol">Firebase durumunu kontrol et</button>'+
+    '</div>'+
     '<div class="adm-top"><button class="abtn" type="button" data-act="yayinla">Yayınla (herkese göster)</button>'+
     '<button class="abtn alt" type="button" data-act="indir">veri.json indir (yedek)</button>'+
     '<button class="abtn alt" type="button" data-act="onizle">Siteyi yenile ve önizle</button>'+
@@ -1505,6 +1574,8 @@ function admCiz(){
     (hedef||gruplar[0]).open=true;
   }
   admYetkiUygula(el);onlineCiz();
+  admDurumGuncelle();
+  admFirebaseKontrol();
 }
 document.addEventListener("submit",function(e){
   if(e.target.id!=="admForm")return;
@@ -1550,8 +1621,9 @@ document.addEventListener("click",function(e){
   if(act==="cikis"){try{sessionStorage.removeItem("efcAdmin");sessionStorage.setItem("efcAdmKapali","1")}catch(x){}location.hash="#anaekran";location.reload();return}
   if(act==="panel"){location.hash="#yonetici";return}
   if(act==="onizle"){location.hash="#anaekran";location.reload();return}
+  if(act==="firebase-kontrol"){admFirebaseKontrol();return}
   if(act==="sifirla"){
-    if(confirm("Taslak silinsin mi? Site yayındaki veriye döner."))try{localStorage.removeItem("efcTaslak");location.hash="#yonetici";location.reload()}catch(x){}
+    if(confirm("Taslak silinsin mi? Site yayındaki veriye döner."))try{localStorage.removeItem("efcTaslak");localStorage.removeItem("efcTaslakZaman");location.hash="#yonetici";location.reload()}catch(x){}
     return;
   }
   if(!ADM_D)return;
@@ -2307,7 +2379,7 @@ async function yayinla(){
     await fbIs("/veriz","PUT",z);
   }catch(x){alert("Yayınlanamadı. İnternet ve Firebase kurallarını (veri, veriz) kontrol et.");return}
   try{var ks=await fb("/veri","?shallow=true"),l=Object.keys(ks||{}).sort();for(var i=0;i<l.length-3;i++)await fbIs("/veri/"+l[i],"DELETE")}catch(e){}
-  try{localStorage.setItem("efcCanli",JSON.stringify({z:z,v:ADM_D}));localStorage.removeItem("efcTaslak")}catch(e){}
+  try{localStorage.setItem("efcCanli",JSON.stringify({z:z,v:ADM_D}));localStorage.removeItem("efcTaslak");localStorage.removeItem("efcTaslakZaman")}catch(e){}
   alert("Yayınlandı. Site herkeste kendiliğinden güncellenecek.");
   location.reload();
 }
@@ -3829,6 +3901,18 @@ body.anket-kilit{overflow:hidden}
 .ab i{position:absolute;left:0;top:0;bottom:0;background:rgba(229,2,9,.28);z-index:0}
 .ab span,.ab b{position:relative;z-index:1}
 
+/* EFC yönetim paneli: durum kartları ve işlem alanı */
+.adm-status-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:9px;margin:12px 0}
+.adm-status-card{min-width:0;padding:12px 13px;border:1px solid var(--line);border-radius:9px;background:linear-gradient(145deg,rgba(30,30,35,.96),rgba(17,17,20,.96))}
+.adm-status-label{display:block;margin-bottom:7px;color:var(--muted);font:700 10px/1.2 var(--body);letter-spacing:.15em}
+.adm-status-value{display:block;overflow-wrap:anywhere;color:var(--bone);font:650 13px/1.4 var(--body)}
+.adm-status-value.is-pending{color:#f2b84b}
+.adm-status-value.is-clean,.adm-status-value.is-ok{color:#75d69a}
+.adm-status-value.is-checking{color:#b8b8c2}
+.adm-status-value.is-error{color:#ff777d}
+.adm-check-btn{grid-column:1/-1;justify-self:start;min-height:36px;border-radius:7px;text-transform:none}
+#admKutu>.adm-top{box-shadow:0 8px 24px rgba(0,0,0,.22)}
+#admKutu>.adm-top .abtn:first-child{background:var(--gold);color:#fff;border-color:var(--gold);font-weight:800}
 /* EFC yönetim paneli: kompakt masaüstü + mobil düzen */
 #admKutu{max-width:1040px;margin-inline:auto;padding-bottom:36px}
 #admKutu>h2{font-size:clamp(34px,5vw,54px);margin:0 0 12px}
@@ -3855,6 +3939,11 @@ body.anket-kilit{overflow:hidden}
 .adm-bar{border-radius:9px;box-shadow:0 8px 28px rgba(0,0,0,.35)}
 .adm-bar button{border-radius:6px;min-height:34px}
 @media(max-width:640px){
+  .adm-status-grid{grid-template-columns:1fr 1fr;gap:7px}
+  .adm-status-card{padding:10px}
+  .adm-status-card:last-of-type{grid-column:1/-1}
+  .adm-status-value{font-size:12px}
+  .adm-check-btn{width:100%;justify-self:stretch}
   #admKutu{padding:0 0 calc(env(safe-area-inset-bottom,0px) + 24px)}
   #admKutu>.adm-top{top:4px;gap:6px;padding:7px;margin:10px 0 12px}
   #admKutu>.adm-top .abtn{flex:1 1 calc(50% - 6px);font-size:12px;padding:8px 7px;min-height:38px}
