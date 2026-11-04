@@ -1773,17 +1773,57 @@ function mzLink(v){
     return v.replace(/^https?:\/\/(?:www\.)?dropbox\.com/i,"https://dl.dropboxusercontent.com").replace(/([?&])dl=\d&?/,"$1").replace(/[?&]$/,"");
   return v;
 }
-function mzGecerli(v){return /^https:\/\/\S+$/i.test(v)||/^muzik\/\S+$/.test(v)}
+function mzGecerli(v){return /^https:\/\/\S+$/i.test(v)||/^muzik\/\S+$/.test(v)||/^ses:[0-9a-f]{32}$/.test(v)}
+/* ====== SİTEDEN MP3 YÜKLEME ======
+   MP3, Firebase Realtime Database'e /ses/<id> altında parçalara bölünerek yazılır. <id> dosyanın SHA-256 özetidir:
+   dosya indirilirken özet doğrulanır, tutmazsa çalınmaz. Listede şarkının linki "ses:<id>" olarak durur (imzalı veriyle yayınlanır).
+   Çalarlar bu linki açıp önbelleğe (Cache API) alır, sonraki açılışlarda yeniden indirmez. */
+var SES_TK={m:0,g:0},SES_ON={},SES_MAX=10*1024*1024,SES_CH=393216;
+async function sesHash(buf){var a=new Uint8Array(await crypto.subtle.digest("SHA-256",buf)),s="";for(var i=0;i<16;i++)s+=("0"+a[i].toString(16)).slice(-2);return s}
+async function sesYukle(file,durum){
+  var buf=await file.arrayBuffer(),id=await sesHash(buf),var_=null;
+  try{var_=await fb("/ses/"+id+"/n","")}catch(e){}
+  if(var_)return id;   /* aynı dosya daha önce yüklenmiş */
+  var u=new Uint8Array(buf),n=Math.ceil(u.length/SES_CH);
+  for(var i=0;i<n;i++){
+    await fbIs("/ses/"+id+"/c/"+i,"PUT",b64(u.subarray(i*SES_CH,(i+1)*SES_CH)));
+    if(durum)durum(i+1,n);
+  }
+  await fbIs("/ses/"+id+"/n","PUT",n);   /* n en son yazılır: dosya tamam işareti */
+  return id;
+}
+async function sesAl(id){
+  var key="/efc-ses/"+id,c=null;
+  try{c=await caches.open("efc-ses");var r=await c.match(key);if(r)return URL.createObjectURL(await r.blob())}catch(e){c=null}
+  var o=await fb("/ses/"+id,"");
+  if(!o||!o.c||!o.n)throw new Error("yok");
+  var parts=[];for(var i=0;i<o.n;i++){if(!o.c[i])throw new Error("eksik");parts.push(ub64(o.c[i]))}
+  var blob=new Blob(parts,{type:"audio/mpeg"});
+  if(await sesHash(await blob.arrayBuffer())!==id)throw new Error("bozuk");
+  try{if(c)await c.put(key,new Response(blob))}catch(e){}
+  return URL.createObjectURL(blob);
+}
+/* çalarlar için: "ses:<id>" ise Firebase'den çözüp blob adresi verir, değilse linki olduğu gibi döndürür */
+function efcSrc(d,ok,hata){
+  var m=/^ses:([0-9a-f]{32})$/.exec(d||"");
+  if(!m){ok(d);return}
+  var id=m[1];
+  if(SES_ON[id]){ok(SES_ON[id]);return}
+  sesAl(id).then(function(u){SES_ON[id]=u;ok(u)},function(){hata()});
+}
+function mzYuklePanel(w,L){
+  return '<div style="margin-top:10px"><label class="abtn alt" style="display:inline-block;cursor:pointer">MP3 yükle<input type="file" accept=".mp3,audio/mpeg" data-mzup="'+w+'" hidden></label> <span class="sub" id="mzDurum'+w+'" style="display:inline"></span><p class="sub" style="margin:6px 0 0;font-size:14px">Bilgisayardan / telefondan MP3 seç (en fazla 10 MB). Dosya siteye yüklenir, listeye otomatik eklenir. Sonra <b>Yayınla</b>.</p></div>';
+}
 function admMuzik(D){
   var h='<h3>Müzik</h3><p class="sub">Her şarkı için adını ve ses dosyasının <b>linkini</b> yaz. Link ya <b>YouTube</b> linki (youtube.com / youtu.be / music.youtube.com) ya da https:// ile başlayan doğrudan bir ses dosyası (örn. .mp3) olmalı. Dropbox ve Google Drive paylaşım linklerini olduğu gibi yapıştırabilirsin, otomatik düzeltilir. YouTube videolarında sadece sesi çalınır. Spotify linkleri çalmaz. Değişiklikler <b>Yayınla</b> ile herkese yansır.</p>';
   if(!D.MUZIK.length)h+='<p class="sub">Listede şarkı yok.</p>';
   D.MUZIK.forEach(function(m,i){
     h+='<div class="aw" data-mi="'+i+'"><div class="ar-g">'+
       '<label>Şarkı adı<input data-mz="ad" maxlength="120" value="'+esc(m.ad)+'"></label>'+
-      '<label>Şarkı linki<input data-mz="dosya" type="url" maxlength="1000" placeholder="https://... veya YouTube linki" value="'+esc(m.dosya)+'"></label></div>'+
+      '<label>Şarkı linki<input data-mz="dosya" type="url" maxlength="1000" placeholder="https://... veya YouTube linki" value="'+esc(/^ses:/.test(m.dosya)?"Yüklenen MP3":m.dosya)+'"'+(/^ses:/.test(m.dosya)?' readonly':'')+'></label></div>'+
       '<div class="ar-b"><button class="abtn alt" type="button" data-mzact="sil">Sil</button></div></div>';
   });
-  return h+'<button class="abtn alt" type="button" data-mzact="ekle">+ Şarkı ekle</button>';
+  return h+'<button class="abtn alt" type="button" data-mzact="ekle">+ Şarkı ekle</button>'+mzYuklePanel("m");
 }
 document.addEventListener("change",function(e){
   var t=e.target;if(!t||!t.getAttribute||!admin()||!ADM_D)return;
@@ -1808,6 +1848,23 @@ document.addEventListener("click",function(e){
   }else return;
   admKaydet();admCiz();window.scrollTo(0,y0);
 });
+document.addEventListener("change",async function(e){
+  var t=e.target,w=t&&t.getAttribute&&t.getAttribute("data-mzup");
+  if(!w||!admin()||!ADM_D)return;
+  var f=t.files&&t.files[0];t.value="";if(!f)return;
+  var dEl=document.getElementById("mzDurum"+w),y0=window.scrollY;
+  function msg(x){if(dEl)dEl.textContent=x}
+  if(!/\.mp3$/i.test(f.name)&&f.type!=="audio/mpeg"){alert("Sadece MP3 dosyası yüklenebilir.");return}
+  if(f.size>SES_MAX){alert("Dosya çok büyük ("+(f.size/1048576).toFixed(1)+" MB). En fazla 10 MB olabilir.");return}
+  if(!window.crypto||!crypto.subtle||!FB_URL){alert("Bu tarayıcıda yükleme yapılamıyor.");return}
+  msg("Yükleniyor…");
+  try{
+    var id=await sesYukle(f,function(i,n){msg("Yükleniyor… %"+Math.round(i/n*100))});
+    var L=w==="g"?(ADM_D.GIRISMUZIK||(ADM_D.GIRISMUZIK=[])):ADM_D.MUZIK;
+    L.push({ad:f.name.replace(/\.mp3$/i,"").trim().slice(0,120)||"Yeni şarkı",dosya:"ses:"+id});
+    admKaydet();admCiz();window.scrollTo(0,y0);
+  }catch(x){msg("");alert("MP3 yüklenemedi. İnternetini ve Firebase kurallarında /ses yolu için okuma-yazma iznini kontrol et.")}
+});
 /* ====== GİRİŞ EKRANI MÜZİK PANELİ ======
    Üye girişi ekranındaki çalarının listesi. Genel müzikten bağımsızdır (aynı link kuralları: YouTube, https ses dosyası, Dropbox / Drive). */
 function admGirisMuzik(D){
@@ -1817,10 +1874,10 @@ function admGirisMuzik(D){
   L.forEach(function(m,i){
     h+='<div class="aw" data-gi="'+i+'"><div class="ar-g">'+
       '<label>Şarkı adı<input data-gz="ad" maxlength="120" value="'+esc(m.ad)+'"></label>'+
-      '<label>Şarkı linki<input data-gz="dosya" type="url" maxlength="1000" placeholder="https://... veya YouTube linki" value="'+esc(m.dosya)+'"></label></div>'+
+      '<label>Şarkı linki<input data-gz="dosya" type="url" maxlength="1000" placeholder="https://... veya YouTube linki" value="'+esc(/^ses:/.test(m.dosya)?"Yüklenen MP3":m.dosya)+'"'+(/^ses:/.test(m.dosya)?' readonly':'')+'></label></div>'+
       '<div class="ar-b"><button class="abtn alt" type="button" data-gzact="sil">Sil</button></div></div>';
   });
-  return h+'<button class="abtn alt" type="button" data-gzact="ekle">+ Giriş müziği ekle</button>';
+  return h+'<button class="abtn alt" type="button" data-gzact="ekle">+ Giriş müziği ekle</button>'+mzYuklePanel("g");
 }
 document.addEventListener("change",function(e){
   var t=e.target;if(!t||!t.getAttribute||!admin()||!ADM_D)return;
@@ -1906,7 +1963,7 @@ function admIzinGerek(t){
   if(t.hasAttribute("data-wfoto")||t.hasAttribute("data-xfoto")||t.hasAttribute("data-xfsil"))return "foto";
   var wa=g("data-wact");
   if(wa)return wa==="fsil"?"foto":(wa==="gekle"||wa==="gsil")?"kadro":"bilgi";
-  if(g("data-mz")||g("data-mzact")||g("data-gz")||g("data-gzact"))return "muzik";
+  if(g("data-mz")||g("data-mzact")||g("data-gz")||g("data-gzact")||g("data-mzup"))return "muzik";
   if(t.closest(".ar")||g("data-act")==="ekle")return "mac";
   return "";
 }
@@ -2945,6 +3002,7 @@ document.addEventListener("submit",async function(e){
     var id=ytId(m.dosya);
     ad.textContent=m.ad||"Şarkı";
     a.loop=!!profilM;
+    SES_TK.m++;
     if(id){
       mod="y";
       a.pause();a.removeAttribute("src");a.load();
@@ -2952,8 +3010,9 @@ document.addEventListener("submit",async function(e){
     }else{
       if(ytHazir&&mod==="y"){try{yt.stopVideo()}catch(e){}}
       mod="a";ytBekle=null;ytCalan=false;
-      a.src=m.dosya;
-      if(istek)calis();
+      var tk=++SES_TK.m;
+      if(/^ses:/.test(m.dosya))a.pause();
+      efcSrc(m.dosya,function(u){if(tk!==SES_TK.m)return;a.src=u;if(istek)calis()},function(){if(tk!==SES_TK.m)return;ad.textContent=(m.ad||"Şarkı")+" (açılamadı)";a.dispatchEvent(new Event("error"))});
     }
     ui();
   }
@@ -3238,6 +3297,7 @@ document.addEventListener("submit",async function(e){
     i=(n+GMUZIK.length)%GMUZIK.length;
     var m=GMUZIK[i],id=ytId(m.dosya);
     ad.textContent=m.ad||"Şarkı";
+    SES_TK.g++;
     if(id){
       mod="y";
       a.pause();a.removeAttribute("src");a.load();
@@ -3245,8 +3305,9 @@ document.addEventListener("submit",async function(e){
     }else{
       if(ytHazir&&mod==="y"){try{yt.stopVideo()}catch(e){}}
       mod="a";ytBekle=null;ytCalan=false;
-      a.src=m.dosya;
-      if(istek&&!gizli)calis();
+      var tk=++SES_TK.g;
+      if(/^ses:/.test(m.dosya))a.pause();
+      efcSrc(m.dosya,function(u){if(tk!==SES_TK.g)return;a.src=u;if(istek&&!gizli)calis()},function(){if(tk!==SES_TK.g)return;ad.textContent=(m.ad||"Şarkı")+" (açılamadı)";a.dispatchEvent(new Event("error"))});
     }
     ui();
   }
