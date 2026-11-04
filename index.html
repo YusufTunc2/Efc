@@ -542,6 +542,65 @@ body.kilit-adm #kilitGeri{display:block}
   .card.num li.match-row .yp.sm i{font-size:18px}
 }
 
+
+/* EFC giriş ekranı – yenilenmiş, tüm mevcut giriş/onay akışları korunur */
+#kilit{
+  display:none;align-items:center;justify-content:center;
+  padding:calc(env(safe-area-inset-top,0px) + 82px) 20px 42px;
+  background:
+    radial-gradient(ellipse at 12% 18%,rgba(62,99,255,.16),transparent 34%),
+    radial-gradient(ellipse at 88% 82%,rgba(229,2,9,.16),transparent 34%),
+    linear-gradient(145deg,#08080b 0%,#111116 52%,#08080b 100%);
+}
+body.kilit #kilit{display:flex}
+#kilit::before{
+  content:"EFC";position:fixed;left:50%;top:50%;transform:translate(-50%,-50%);
+  font:900 clamp(190px,38vw,520px)/.8 var(--display);letter-spacing:-.06em;
+  color:rgba(255,255,255,.018);pointer-events:none;white-space:nowrap;
+}
+#kilit .kwrap{
+  position:relative;z-index:1;width:min(100%,500px);max-width:500px;
+  margin:auto;padding:clamp(22px,5vw,42px);
+  background:linear-gradient(155deg,rgba(29,29,36,.97),rgba(15,15,20,.97));
+  border:1px solid rgba(255,255,255,.11);
+  border-top:3px solid var(--gold);
+  box-shadow:0 24px 90px rgba(0,0,0,.55),0 0 55px rgba(229,2,9,.07);
+}
+.kwrap .logo{width:132px;height:44px;margin:0 auto 25px}
+.kwrap h1{text-align:center;font-size:clamp(42px,10vw,62px);letter-spacing:.015em;margin:0 0 12px}
+.kwrap .sub{text-align:center;color:#b8b8c2;max-width:38ch;margin:0 auto 25px;font-size:15px;line-height:1.6}
+.kwrap #girisForm{margin-top:8px}
+.kwrap #girisForm label,.kwrap #uyeTalepForm label,.kwrap #sifreForm label{
+  display:block;color:#c7c7d0;font:700 12px var(--body);letter-spacing:.12em;
+  text-transform:uppercase;margin:0 0 15px
+}
+.kwrap #girisForm input,.kwrap #uyeTalepForm input,.kwrap #uyeTalepForm textarea,.kwrap #sifreForm input{
+  display:block;width:100%;margin-top:8px;min-height:50px;padding:13px 15px;
+  color:#fff;background:#0b0b10;border:1px solid #393943;border-radius:7px;
+  font:500 16px var(--body);transition:border-color .18s,box-shadow .18s
+}
+.kwrap #girisForm input:focus,.kwrap #uyeTalepForm input:focus,.kwrap #uyeTalepForm textarea:focus,.kwrap #sifreForm input:focus{
+  outline:none;border-color:var(--gold);box-shadow:0 0 0 3px rgba(229,2,9,.14)
+}
+.kwrap #girisForm .abtn,.kwrap #sifreForm .abtn,.kwrap #uyeTalepForm .abtn{
+  width:100%;min-height:52px;border-radius:7px;font-size:22px;letter-spacing:.04em;
+  box-shadow:0 8px 24px rgba(229,2,9,.18)
+}
+.kwrap #uyeTalepAc{border-radius:7px;min-height:48px;font-size:18px}
+.kwrap .abtn.alt{box-shadow:none}
+.kwrap .kalt{text-align:center;font-size:13px;line-height:1.65;margin:22px 0 0}
+.kwrap .kalt a{color:#fff;text-decoration-color:var(--gold);text-underline-offset:3px}
+.kwrap .adm-err{text-align:center;font-size:13px}
+.kwrap .afis{border-radius:8px;margin-bottom:24px}
+.kwrap .gmuzik{border-radius:8px}
+@media(max-width:640px){
+  #kilit{align-items:flex-start;padding:calc(env(safe-area-inset-top,0px) + 92px) 14px 28px}
+  #kilit .kwrap{padding:25px 20px 24px}
+  .kwrap .logo{margin-bottom:20px}
+  .kwrap h1{font-size:46px}
+  .kwrap .sub{font-size:14px;margin-bottom:22px}
+}
+
 </style>
 </head>
 <body>
