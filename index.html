@@ -617,7 +617,16 @@ kilitUygula();window.addEventListener("hashchange",kilitUygula);
       <button class="abtn" type="submit">Giriş yap</button>
       <p class="adm-err" id="girisErr" role="alert"></p>
     </form>
-    <p class="kalt">Hesabın yok mu? Yönetimden iste. · <a href="#yonetici">Yönetici girişi</a></p>
+    <button class="abtn alt" id="uyeTalepAc" type="button" style="width:100%;margin-top:10px">Üyelik talebi oluştur</button>
+    <form id="uyeTalepForm" autocomplete="off" hidden style="margin-top:18px">
+      <label>Ad soyad<input id="uyeTalepAd" maxlength="70" autocomplete="name" required></label>
+      <label>İletişim bilgisi <small>(isteğe bağlı)</small><input id="uyeTalepIletisim" maxlength="100" autocomplete="email" placeholder="Telefon veya e-posta"></label>
+      <label>Neden EFC'ye katılmak istiyorsun?<textarea id="uyeTalepNot" maxlength="600" rows="4" required></textarea></label>
+      <button class="abtn" type="submit">Talebi yönetime gönder</button>
+      <button class="abtn alt" id="uyeTalepVazgec" type="button" style="width:100%;margin-top:8px">Giriş ekranına dön</button>
+      <p class="adm-err" id="uyeTalepMsg" role="alert"></p>
+    </form>
+    <p class="kalt">Hesabın varsa giriş yap. Yeni üyelikler yönetim onayıyla açılır. · <a href="#yonetici">Yönetici girişi</a></p>
   </div>
 </div>
 <a id="kilitGeri" href="#anaekran">← Üye girişine dön</a>
@@ -677,6 +686,7 @@ kilitUygula();window.addEventListener("hashchange",kilitUygula);
     <a class="item" id="onayLink" href="#onaylar" style="display:none"><span class="nav-ico">✓</span><span>KVKK / görsel onayları</span></a>
     <a class="item" id="anketLink" href="#anketsonuc" style="display:none"><span class="nav-ico">▥</span><span>Anket sonuçları</span></a>
     <a class="item" id="sikLink" href="#sikayetler" style="display:none"><span class="nav-ico">☏</span><span>Gelen istek / şikayet</span></a>
+    <a class="item" id="uyeTalepLink" href="#uyetalepleri" style="display:none"><span class="nav-ico">♙</span><span>Üyelik talepleri</span></a>
     <a class="item" id="cikisLink" href="#anaekran" style="display:none"><span class="nav-ico">↪</span><span>Çıkış yap</span></a>
   </div>
   <div class="drawer-foot">EFC <span>•</span> GÜREŞ TOPLULUĞU</div>
@@ -788,6 +798,7 @@ kilitUygula();window.addEventListener("hashchange",kilitUygula);
   </div></section>
   <section class="block" data-page="mactalepleri" style="border-bottom:0"><div class="wrap adm" id="macKutu"></div></section>
   <section class="block" data-page="sikayetler" style="border-bottom:0"><div class="wrap adm" id="sikKutu"></div></section>
+  <section class="block" data-page="uyetalepleri" style="border-bottom:0"><div class="wrap adm" id="uyeKutu"></div></section>
   <section class="block" data-page="onaylar" style="border-bottom:0"><div class="wrap adm" id="onayKutu"></div></section>
   <section class="block" data-page="anketsonuc" style="border-bottom:0"><div class="wrap adm" id="anketKutu"></div></section>
 
@@ -2415,7 +2426,7 @@ function duyuruCiz(){
   document.addEventListener("click",function(){bp.classList.remove("open")});
   document.getElementById("bildKapat").addEventListener("click",function(e){e.stopPropagation();kapat()});
   bn.addEventListener("click",function(){kapat();location.hash="#duyurular"});
-  if(admin()){var altY=altYon();if(!altY){document.getElementById("sohLink").style.display="block";document.getElementById("onayLink").style.display="block"}if(yz("talep")){document.getElementById("sikLink").style.display="block";document.getElementById("macLink").style.display="block"}if(yz("anket"))document.getElementById("anketLink").style.display="block"}
+  if(admin()){var altY=altYon();if(!altY){document.getElementById("sohLink").style.display="block";document.getElementById("onayLink").style.display="block"}if(yz("talep")){document.getElementById("sikLink").style.display="block";document.getElementById("macLink").style.display="block";document.getElementById("uyeTalepLink").style.display="block"}if(yz("anket"))document.getElementById("anketLink").style.display="block"}
   duyuruCek();setInterval(duyuruCek,60000);
   setInterval(function(){if(location.hash==="#sohbet"&&!document.hidden)sohCek()},15000);
   /* anlık akış: Firebase yeni kayıt olunca haber verir, ardından mevcut çekme fonksiyonu çalışır (yedek olarak yavaş kontrol de açık kalır) */
@@ -2638,6 +2649,7 @@ function macFormDoldur(){
 var SIK_MOD="sik",SIK_L={};
 var SIKM={
   sik:{kutu:"sikKutu",list:"sikList",bas:"Gelen istek ve şikayetler",alt:"Ziyaretçilerin gönderdiği şikayetler ve istekler ayrı ayrı listelenir, en yenisi üstte. Yanıtın gönderene kendi cihazında görünür. Sadece yönetim görür."},
+  uye:{kutu:"uyeKutu",list:"uyeList",bas:"Üyelik talepleri",alt:"Yeni üyelik isteyen kişilerin bilgileri. Talepler şifreli saklanır ve sadece yetkili yönetim görür."},
   mac:{kutu:"macKutu",list:"macList",bas:"Maç talepleri",alt:"Ziyaretçilerin istediği maçlar, en yenisi üstte. Onay, ret ya da başka zaman önerisi yazdığında talebi yapan kişi bunu \"Gönderdiklerim\" bölümünde görür. Sadece yönetim görür."}
 ,
   anket:{kutu:"anketKutu",list:"anketList",bas:"Anket sonuçları",alt:"Anketlere gelen cevaplar. Cevaplar şifreli saklanır, sadece yönetim açabilir. Anonim seçen katılımcının adı kaydedilmez; kimliğini açık bırakanların adı ve bilgileri cevabın yanında görünür."},
@@ -2661,9 +2673,10 @@ function sikCiz(mod){
 function kartA(d){
   var ic=(d.t==="mac"&&d.g1)
     ?'<div class="mc-vs">'+esc(d.g1)+' <i>vs</i> '+esc(d.g2)+'</div><p>'+esc(gunMetni(d.gun))+' · '+esc(d.tn)+'</p>'
-    :'<p>'+esc(d.m)+'</p>';
-  var btn=d.k?'<button class="abtn alt" type="button" data-yanac="'+esc(d.id)+'" style="font-size:15px;padding:8px 12px;min-height:0">Yanıtla</button>':'<span class="bos" style="align-self:center">Eski mesaj, yanıt gönderilemez.</span>';
-  return '<div class="dy" id="kart-'+esc(d.id)+'"><small><b style="color:var(--bone)">'+esc(d.a)+'</b> · '+tz(d.z)+'</small><div>'+durumChip(d.y,"Yanıt yok")+'</div>'+ic+yanHtml(d.y)+
+    :'<p>'+esc(d.m)+'</p>'+(d.t==="uye"&&d.iletisim?'<p><b>İletişim:</b> '+esc(d.iletisim)+'</p>':'');
+  var btn=d.t==="uye"?'<span class="bos" style="align-self:center">İletişim bilgisi üzerinden dönüş yap</span>':(d.k?'<button class="abtn alt" type="button" data-yanac="'+esc(d.id)+'" style="font-size:15px;padding:8px 12px;min-height:0">Yanıtla</button>':'<span class="bos" style="align-self:center">Eski mesaj, yanıt gönderilemez.</span>');
+  var durum=d.t==="uye"?'<span class="chip bek">İnceleme bekliyor</span>':durumChip(d.y,"Yanıt yok");
+  return '<div class="dy" id="kart-'+esc(d.id)+'"><small><b style="color:var(--bone)">'+esc(d.a)+'</b> · '+tz(d.z)+'</small><div>'+durum+'</div>'+ic+yanHtml(d.y)+
     '<div class="ar-b" style="margin-top:10px">'+btn+'<button class="abtn alt" type="button" data-sikdel="'+esc(d.id)+'" style="font-size:15px;padding:8px 12px;min-height:0">Sil</button></div></div>';
 }
 async function sikCek(){
@@ -2683,10 +2696,10 @@ async function sikCek(){
       var raw=await crypto.subtle.decrypt({name:"RSA-OAEP"},pk,ub64(o[id].k));
       var ak=await crypto.subtle.importKey("raw",raw,"AES-GCM",false,["decrypt"]),cp=o[id].c.split(".");
       var m=JSON.parse(dec.decode(await crypto.subtle.decrypt({name:"AES-GCM",iv:ub64(cp[0])},ak,ub64(cp[1]))));
-      l.push({id:id,a:String(m.a||""),m:String(m.m||""),t:m.t==="istek"?"istek":m.t==="mac"?"mac":m.t==="onay"?"onay":"sikayet",z:+m.z||0,kv:!!m.kvkk,gr:!!m.gorsel,
-        k:kodTemizle(m.k||"").length===20?kodTemizle(m.k):"",g1:String(m.g1||""),g2:String(m.g2||""),gun:String(m.gun||""),tn:String(m.tn||"")});
+      l.push({id:id,a:String(m.a||""),m:String(m.m||""),t:m.t==="istek"?"istek":m.t==="mac"?"mac":m.t==="onay"?"onay":m.t==="uye"?"uye":"sikayet",z:+m.z||0,kv:!!m.kvkk,gr:!!m.gorsel,
+        k:kodTemizle(m.k||"").length===20?kodTemizle(m.k):"",g1:String(m.g1||""),g2:String(m.g2||""),gun:String(m.gun||""),tn:String(m.tn||""),iletisim:String(m.iletisim||"")});
     }catch(e){}}
-    l=l.filter(function(d){return SIK_MOD==="mac"?d.t==="mac":SIK_MOD==="onay"?d.t==="onay":(d.t!=="mac"&&d.t!=="onay")});
+    l=l.filter(function(d){return SIK_MOD==="mac"?d.t==="mac":SIK_MOD==="onay"?d.t==="onay":SIK_MOD==="uye"?d.t==="uye":(d.t!=="mac"&&d.t!=="onay"&&d.t!=="uye")});
     l.sort(function(a,b){return b.z-a.z});
     if(SIK_MOD==="onay"){
       /* her güreşçinin en son onay kaydı */
@@ -2718,6 +2731,8 @@ async function sikCek(){
     if(SIK_MOD==="mac"){
       var bek=l.filter(function(d){return !d.y.length}),yan=l.filter(function(d){return d.y.length});
       el.innerHTML=not+bolum("Yanıt bekleyenler",bek,"Bekleyen talep yok.")+bolum("Yanıtlananlar",yan,"Henüz yanıtlanan yok.");
+    }else if(SIK_MOD==="uye"){
+      el.innerHTML=not+bolum("Yeni üyelik başvuruları",l,"Bekleyen üyelik talebi yok.");
     }else{
       var ist=l.filter(function(d){return d.t==="istek"}),sik=l.filter(function(d){return d.t!=="istek"});
       el.innerHTML=not+bolum("Şikayetler",sik,"Henüz şikayet yok.")+bolum("İstekler",ist,"Henüz istek yok.");
@@ -2731,7 +2746,7 @@ document.addEventListener("change",function(e){
 });
 document.addEventListener("submit",async function(e){
   var f=e.target,id=f.id,cl=f.className;
-  if(id!=="istekForm"&&id!=="sikKilit"&&id!=="macForm"&&cl!=="kodForm"&&cl!=="yform")return;
+  if(id!=="istekForm"&&id!=="sikKilit"&&id!=="macForm"&&id!=="uyeTalepForm"&&cl!=="kodForm"&&cl!=="yform")return;
   e.preventDefault();
   if(id==="sikKilit"){
     if(!admin())return;
@@ -2754,6 +2769,24 @@ document.addEventListener("submit",async function(e){
     try{await yanitGonder(d,tx,f.elements.d.value);sikCek()}
     catch(x){ms2.textContent="Gönderilemedi. İnternet ve Firebase kurallarını (yanit) kontrol et.";b2.disabled=false}
     return;
+  }
+  if(id==="uyeTalepForm"){
+    var ua=document.getElementById("uyeTalepAd"),ui=document.getElementById("uyeTalepIletisim"),un=document.getElementById("uyeTalepNot"),um=document.getElementById("uyeTalepMsg"),ub=f.querySelector('button[type="submit"]');
+    var isim=ua.value.trim().replace(/\s+/g," "),ilet=ui.value.trim(),not=un.value.trim();
+    function uyeMesaj(t,iyi){um.textContent=t;um.style.color=iyi?"#6fcf97":""}
+    if(isim.length<4||isim.indexOf(" ")<0){uyeMesaj("Lütfen adını ve soyadını yaz.");return}
+    if(not.length<8){uyeMesaj("Kendini kısaca tanıtıp neden katılmak istediğini yaz.");return}
+    if(ilet.length>100){uyeMesaj("İletişim bilgisi çok uzun.");return}
+    var sonU=0;try{sonU=+localStorage.getItem("efcUyeTalepSon")||0}catch(x){}
+    if(Date.now()-sonU<60000){uyeMesaj("Yeni bir talep göndermeden önce bir dakika bekle.");return}
+    if(!FB_URL||!window.crypto||!crypto.subtle){uyeMesaj("Şu an gönderilemiyor. Biraz sonra tekrar dene.");return}
+    ub.disabled=true;uyeMesaj("Talebin güvenli şekilde gönderiliyor…",true);
+    try{
+      var uKod=await sikGonder(isim,not,"uye",{iletisim:ilet});
+      try{localStorage.setItem("efcUyeTalepSon",Date.now())}catch(x){}
+      f.reset();uyeMesaj("Talebin yönetime ulaştı. İncelendikten sonra seninle iletişime geçilecek. Takip kodun: "+kodGoster(uKod),true);
+    }catch(x){uyeMesaj(x&&x.message==="anahtar yok"?"Üyelik talep kutusu henüz kurulmadı. Yönetim kurulum yaptıktan sonra tekrar deneyebilirsin.":"Talep gönderilemedi. İnternet bağlantını kontrol edip tekrar dene.")}
+    ub.disabled=false;return;
   }
   if(id==="macForm"){
     var ad=document.getElementById("macAd"),g1=document.getElementById("macG1"),g2=document.getElementById("macG2"),gn=document.getElementById("macGun"),tn=document.getElementById("macTn"),mm=document.getElementById("macMsg"),bm=f.querySelector("button[type=submit]");
@@ -2929,6 +2962,12 @@ document.addEventListener("submit",async function(e){
   }catch(x){er.textContent="Bağlantı kurulamadı. İnternetini kontrol et.";b.disabled=false}
 });
 var GECICI=null;
+(function(){
+  var ac=document.getElementById("uyeTalepAc"),f=document.getElementById("uyeTalepForm"),g=document.getElementById("girisForm"),v=document.getElementById("uyeTalepVazgec");
+  if(!ac||!f||!g)return;
+  ac.addEventListener("click",function(){g.hidden=true;ac.hidden=true;f.hidden=false;document.getElementById("kilitBaslik").textContent="Üyelik talebi";document.getElementById("kilitAlt").textContent="Bilgilerini gönder; üyelik talebini EFC yönetimi inceleyip seninle iletişime geçsin.";document.getElementById("uyeTalepAd").focus()});
+  if(v)v.addEventListener("click",function(){f.hidden=true;g.hidden=false;ac.hidden=false;document.getElementById("kilitBaslik").textContent="Üye girişi";document.getElementById("kilitAlt").textContent="Siteyi görmek için güreşçi hesabınla giriş yap. Kullanıcı adın, turnuvadaki güreşçi adındır.";document.getElementById("uyeTalepMsg").textContent=""});
+})();
 /* Firebase hesabının displayName alanı durum tutar: "efc-ok" = şifre belirlendi, ".k1" = KVKK onaylandı, ".g1"/".g0" = görsel izni var/yok */
 function dnParse(dn){dn=String(dn||"");return {pw:/^efc-ok/.test(dn),k:/\.k1(\.|$)/.test(dn),g:/\.g1(\.|$)/.test(dn)}}
 function onayGoster(){
@@ -3018,7 +3057,7 @@ document.addEventListener("submit",async function(e){
   sc.addEventListener("click",function(e){e.preventDefault();set(false)});
   document.addEventListener("keydown",function(e){if(e.key==="Escape")set(false)});
   set(false);
-  var pages=["anaekran","maclar","gecmis","puan","guresciler","guresci","hafif","orta","agir","hakemler","antrenorler","yonetim","yonetici","oduller","hakkinda","duyurular","sohbet","istek","sikayetler","mactalebi","mactalepleri","onaylar","anketsonuc"];
+  var pages=["anaekran","maclar","gecmis","puan","guresciler","guresci","hafif","orta","agir","hakemler","antrenorler","yonetim","yonetici","oduller","hakkinda","duyurular","sohbet","istek","sikayetler","mactalebi","mactalepleri","uyetalepleri","onaylar","anketsonuc"];
   var simdi=null,Y={};   /* simdi: açık sayfa, Y: sayfalardaki kaydırma konumu */
   function show(p){
     var raw=p,cur=p,pw=null,profilden=simdi!==null&&simdi.indexOf("guresci/")===0;
@@ -3033,6 +3072,7 @@ document.addEventListener("submit",async function(e){
     if(p==="yonetici")admCiz();
     if(p==="sohbet")sohCiz();
     if(p==="sikayetler")sikCiz("sik");
+    if(p==="uyetalepleri")sikCiz("uye");
     if(p==="mactalepleri")sikCiz("mac");
     if(p==="onaylar")sikCiz("onay");
     if(p==="anketsonuc")sikCiz("anket");
