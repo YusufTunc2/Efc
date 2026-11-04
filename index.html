@@ -477,6 +477,24 @@ body.kilit-adm #kilitGeri{display:block}
 .gmuzik input#gVol{flex:0 0 96px;width:96px;margin-left:10px}
 .gmuzik button{width:40px;height:40px}
 @media (max-width:640px){#kilit{padding-top:calc(env(safe-area-inset-top,0px) + 126px)}}
+
+/* EFC yenilenmiş mobil/yan menü */
+.drawer{width:min(86vw,350px);padding:calc(env(safe-area-inset-top,0px) + 20px) 18px calc(env(safe-area-inset-bottom,0px) + 22px);background:linear-gradient(160deg,#19191e 0%,#101014 72%);border-right:1px solid #34343b;box-shadow:18px 0 55px rgba(0,0,0,.38)}
+.drawer-brand{padding:2px 10px 18px;margin-bottom:8px;border-bottom:1px solid #303038}
+.drawer .logo{display:block;margin:0 0 7px;width:118px;height:43px;background-position:left center;background-size:contain;background-repeat:no-repeat}
+.drawer-tag{font:700 9px/1 'Barlow',sans-serif;letter-spacing:3px;color:#e50209}
+.drawer-group{padding:13px 0 9px;border-bottom:1px solid #292930}
+.drawer-heading{padding:0 11px 7px;color:#e50209;font:700 10px/1.2 'Barlow',sans-serif;letter-spacing:2px}
+.drawer a.item{display:flex;align-items:center;gap:13px;min-height:42px;padding:8px 11px;margin:2px 0;border:0;border-radius:8px;color:#e9e9ed;font:600 15px/1.25 'Barlow',sans-serif;letter-spacing:.1px;text-transform:none;transition:background .16s,color .16s}
+.drawer a.item:hover,.drawer a.item[aria-current=page]{background:rgba(229,2,9,.13);color:#fff}
+.drawer a.item[aria-current=page]{box-shadow:inset 3px 0 #e50209}
+.drawer .nav-ico{display:inline-flex;align-items:center;justify-content:center;flex:0 0 27px;width:27px;height:27px;border-radius:7px;background:#25252c;color:#ef3439;font:700 17px/1 'Barlow',sans-serif}
+.drawer a.item[aria-current=page] .nav-ico{background:#e50209;color:#fff}
+.drawer-admin{margin-top:2px}
+.drawer-foot{padding:17px 10px 0;color:#777780;font:700 9px/1.2 'Barlow',sans-serif;letter-spacing:2px}
+.drawer-foot span{color:#e50209;padding:0 4px}
+@media(max-width:420px){.drawer{width:min(88vw,340px)}.drawer a.item{min-height:40px;font-size:14px}}
+
 </style>
 </head>
 <body>
@@ -577,31 +595,44 @@ kilitUygula();window.addEventListener("hashchange",kilitUygula);
 <div class="bpanel" id="bildPanel"></div>
 <div class="banner" id="bildBanner" hidden role="status"><span></span><button type="button" id="bildKapat" aria-label="Kapat">×</button></div>
 <aside class="drawer" id="drawer" aria-label="Menü">
-  <span class="logo" role="img" aria-label="EFC"></span>
-  <a class="item" href="#anaekran">Ana ekran</a>
-  <a class="item" id="profilimLink" href="#guresciler" style="display:none">Profilim</a>
-  <a class="item" href="#maclar">Maçlar</a>
-  <a class="item" href="#gecmis">Geçmiş maçlar</a>
-  <a class="item" href="#puan">Puan tablosu</a>
-  <a class="item" href="#guresciler">Güreşçiler</a>
-  <a class="item" href="#hafif">Hafif siklet</a>
-  <a class="item" href="#orta">Orta siklet</a>
-  <a class="item" href="#agir">Ağır siklet</a>
-  <a class="item" href="#hakemler">Hakemler</a>
-  <a class="item" href="#antrenorler">Antrenörler</a>
-  <a class="item" href="#yonetim">Yönetim kurulu</a>
-  <a class="item" href="#oduller">Ödüller</a>
-  <a class="item" href="#hakkinda">Hakkında</a>
-  <a class="item" href="#duyurular">Duyurular</a>
-  <a class="item" href="#mactalebi">Maç talebi</a>
-  <a class="item" href="#istek">İstek ve şikayet</a>
-  <a class="item" id="admLink" href="#yonetici">Yönetici</a>
-  <a class="item" id="sohLink" href="#sohbet" style="display:none">Yönetici sohbeti</a>
-  <a class="item" id="macLink" href="#mactalepleri" style="display:none">Maç talepleri</a>
-  <a class="item" id="onayLink" href="#onaylar" style="display:none">KVKK / görsel onayları</a>
-  <a class="item" id="anketLink" href="#anketsonuc" style="display:none">Anket sonuçları</a>
-  <a class="item" id="sikLink" href="#sikayetler" style="display:none">Gelen istek / şikayet</a>
-  <a class="item" id="cikisLink" href="#anaekran" style="display:none">Çıkış yap</a>
+  <div class="drawer-brand"><span class="logo" role="img" aria-label="EFC"></span><span class="drawer-tag">FIGHT • WRESTLING</span></div>
+  <div class="drawer-group"><div class="drawer-heading">GENEL</div>
+    <a class="item" href="#anaekran"><span class="nav-ico">⌂</span><span>Ana ekran</span></a>
+    <a class="item" id="profilimLink" href="#guresciler" style="display:none"><span class="nav-ico">♙</span><span>Profilim</span></a>
+  </div>
+  <div class="drawer-group"><div class="drawer-heading">MÜSABAKALAR</div>
+    <a class="item" href="#maclar"><span class="nav-ico">⚔</span><span>Maçlar</span></a>
+    <a class="item" href="#gecmis"><span class="nav-ico">◷</span><span>Geçmiş maçlar</span></a>
+    <a class="item" href="#puan"><span class="nav-ico">▤</span><span>Puan tablosu</span></a>
+  </div>
+  <div class="drawer-group"><div class="drawer-heading">GÜREŞÇİLER & EKİP</div>
+    <a class="item" href="#guresciler"><span class="nav-ico">♟</span><span>Güreşçiler</span></a>
+    <a class="item" href="#hafif"><span class="nav-ico">Ⅰ</span><span>Hafif siklet</span></a>
+    <a class="item" href="#orta"><span class="nav-ico">Ⅱ</span><span>Orta siklet</span></a>
+    <a class="item" href="#agir"><span class="nav-ico">Ⅲ</span><span>Ağır siklet</span></a>
+    <a class="item" href="#hakemler"><span class="nav-ico">◎</span><span>Hakemler</span></a>
+    <a class="item" href="#antrenorler"><span class="nav-ico">♜</span><span>Antrenörler</span></a>
+    <a class="item" href="#yonetim"><span class="nav-ico">♛</span><span>Yönetim kurulu</span></a>
+  </div>
+  <div class="drawer-group"><div class="drawer-heading">EFC</div>
+    <a class="item" href="#oduller"><span class="nav-ico">★</span><span>Ödüller</span></a>
+    <a class="item" href="#duyurular"><span class="nav-ico">◉</span><span>Duyurular</span></a>
+    <a class="item" href="#hakkinda"><span class="nav-ico">ⓘ</span><span>Hakkında</span></a>
+  </div>
+  <div class="drawer-group"><div class="drawer-heading">KATILIM & DESTEK</div>
+    <a class="item" href="#mactalebi"><span class="nav-ico">＋</span><span>Maç talebi</span></a>
+    <a class="item" href="#istek"><span class="nav-ico">✉</span><span>İstek ve şikayet</span></a>
+  </div>
+  <div class="drawer-group drawer-admin"><div class="drawer-heading">YÖNETİM</div>
+    <a class="item" id="admLink" href="#yonetici"><span class="nav-ico">⚙</span><span>Yönetici paneli</span></a>
+    <a class="item" id="sohLink" href="#sohbet" style="display:none"><span class="nav-ico">☷</span><span>Yönetici sohbeti</span></a>
+    <a class="item" id="macLink" href="#mactalepleri" style="display:none"><span class="nav-ico">⚑</span><span>Maç talepleri</span></a>
+    <a class="item" id="onayLink" href="#onaylar" style="display:none"><span class="nav-ico">✓</span><span>KVKK / görsel onayları</span></a>
+    <a class="item" id="anketLink" href="#anketsonuc" style="display:none"><span class="nav-ico">▥</span><span>Anket sonuçları</span></a>
+    <a class="item" id="sikLink" href="#sikayetler" style="display:none"><span class="nav-ico">☏</span><span>Gelen istek / şikayet</span></a>
+    <a class="item" id="cikisLink" href="#anaekran" style="display:none"><span class="nav-ico">↪</span><span>Çıkış yap</span></a>
+  </div>
+  <div class="drawer-foot">EFC <span>•</span> GÜREŞ TOPLULUĞU</div>
 </aside>
 
 <main id="top">
