@@ -1320,6 +1320,8 @@ function admSatir(l,x,i){
 }
 function admCiz(){
   var el=document.getElementById("admKutu");if(!el)return;
+  var acikBolum=el.querySelector(".adm-group[open]");
+  var acikAnahtar=acikBolum?acikBolum.getAttribute("data-adm-group"):"";
   if(!admin()){
     el.innerHTML='<h2>Yönetici girişi</h2><p class="sub">Maçları, güreşçileri, hikâyeleri ve fotoğrafları düzenlemek için giriş yap.</p>'+
       '<form id="admForm" autocomplete="off" style="max-width:380px">'+
@@ -1351,7 +1353,28 @@ function admCiz(){
         liste=(d.length?d.map(function(x,i){return admSatir(q[0],x,i)}).join(""):'<p class="sub">Maç yok.</p>');
     h+='<h3>'+q[1]+'</h3>'+(q[0]==="mac"?'<div style="margin:0 0 14px">'+ekle+'</div>'+liste:liste+ekle);
   });
-  el.innerHTML=h;admYetkiUygula(el);onlineCiz();
+  el.innerHTML=h;
+  /* Paneli işlevlere dokunmadan kompakt, açılır-kapanır kategorilere ayır. */
+  var dugumler=Array.prototype.slice.call(el.children),grup=null,basliklar=0;
+  dugumler.forEach(function(n){
+    if(n.tagName==="H3"){
+      basliklar++;
+      grup=document.createElement("details");
+      grup.className="adm-group";
+      grup.setAttribute("data-adm-group",String(basliklar));
+      var ozet=document.createElement("summary");
+      ozet.textContent=n.textContent;
+      grup.appendChild(ozet);
+      el.insertBefore(grup,n);
+      grup.appendChild(n);
+    }else if(grup){grup.appendChild(n)}
+  });
+  var gruplar=el.querySelectorAll(":scope > .adm-group");
+  if(gruplar.length){
+    var hedef=acikAnahtar?el.querySelector('.adm-group[data-adm-group="'+acikAnahtar+'"]'):gruplar[0];
+    (hedef||gruplar[0]).open=true;
+  }
+  admYetkiUygula(el);onlineCiz();
 }
 document.addEventListener("submit",function(e){
   if(e.target.id!=="admForm")return;
@@ -3666,6 +3689,49 @@ body.anket-kilit{overflow:hidden}
 .ab{position:relative;display:flex;justify-content:space-between;gap:12px;padding:8px 10px;margin:0 0 6px;border:1px solid var(--line);overflow:hidden;font:500 15px/1.4 var(--body)}
 .ab i{position:absolute;left:0;top:0;bottom:0;background:rgba(229,2,9,.28);z-index:0}
 .ab span,.ab b{position:relative;z-index:1}
+
+/* EFC yönetim paneli: kompakt masaüstü + mobil düzen */
+#admKutu{max-width:1040px;margin-inline:auto;padding-bottom:36px}
+#admKutu>h2{font-size:clamp(34px,5vw,54px);margin:0 0 12px}
+#admKutu>.adm-note{margin:12px 0;padding:12px 14px;border-radius:8px;line-height:1.45}
+#admKutu>.adm-top{position:sticky;top:8px;z-index:20;display:flex;gap:7px;flex-wrap:wrap;padding:9px;margin:12px 0 14px;background:rgba(11,11,13,.94);border:1px solid var(--line);border-radius:10px;backdrop-filter:blur(12px)}
+#admKutu>.adm-top .abtn{font:600 13px/1.2 var(--body);text-transform:none;min-height:38px;padding:9px 12px;border-radius:6px}
+.adm-group{margin:0 0 9px;border:1px solid var(--line);border-radius:10px;background:rgba(22,22,26,.72);overflow:clip}
+.adm-group>summary{list-style:none;display:flex;align-items:center;justify-content:space-between;gap:12px;min-height:48px;padding:12px 15px;cursor:pointer;color:var(--bone);font:700 16px/1.3 var(--body)}
+.adm-group>summary::-webkit-details-marker{display:none}
+.adm-group>summary:after{content:"+";flex:none;color:var(--gold);font:700 23px/1 var(--body)}
+.adm-group[open]>summary{border-bottom:1px solid var(--line);background:rgba(229,2,9,.07)}
+.adm-group[open]>summary:after{content:"−"}
+.adm-group>h3{display:none!important}
+.adm-group>*:not(summary){margin-left:14px;margin-right:14px}
+.adm-group>.sub{font-size:13px;line-height:1.5}
+.adm-group>.aw,.adm-group>.ar{border-radius:8px}
+.adm-group>.ar{padding:11px 12px 5px}
+.adm-group .ar-g{gap:0 10px}
+.adm-group label{font-size:13px}
+.adm-group input:not([type=checkbox]):not([type=file]),.adm-group select,.adm-group textarea{border-radius:6px;padding:9px 10px;min-height:40px;font-size:15px}
+.adm-group .abtn{font:600 14px/1.2 var(--body);text-transform:none;padding:9px 12px;min-height:38px;border-radius:6px}
+.adm-group .adm-group{margin:10px 14px}
+.adm-group .adm-group>summary{font-size:14px;min-height:42px}
+.adm-bar{border-radius:9px;box-shadow:0 8px 28px rgba(0,0,0,.35)}
+.adm-bar button{border-radius:6px;min-height:34px}
+@media(max-width:640px){
+  #admKutu{padding:0 0 calc(env(safe-area-inset-bottom,0px) + 24px)}
+  #admKutu>.adm-top{top:4px;gap:6px;padding:7px;margin:10px 0 12px}
+  #admKutu>.adm-top .abtn{flex:1 1 calc(50% - 6px);font-size:12px;padding:8px 7px;min-height:38px}
+  .adm-group{margin-bottom:7px;border-radius:8px}
+  .adm-group>summary{min-height:46px;padding:11px 12px;font-size:15px}
+  .adm-group> *:not(summary){margin-left:9px;margin-right:9px}
+  .adm-group .ar-g{grid-template-columns:1fr;gap:0}
+  .adm-group .ar-b{gap:6px}
+  .adm-group .ar-b .abtn{flex:1 1 auto}
+  .adm-group .fo{flex-wrap:wrap;gap:8px}
+  .adm-group .fo img{max-width:76px;max-height:100px;object-fit:cover}
+  .adm-group textarea{max-width:100%;box-sizing:border-box}
+  .adm-bar{left:8px;right:8px;bottom:calc(env(safe-area-inset-bottom,0px) + 8px);justify-content:space-between;padding:6px 8px;gap:6px}
+  .adm-bar span{font-size:12px}
+  .adm-bar button{padding:7px 9px;font-size:12px}
+}
 </style>
 <script>
 (function(){
