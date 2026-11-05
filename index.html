@@ -131,6 +131,7 @@ footer .wrap{display:flex;justify-content:space-between;flex-wrap:wrap;gap:10px}
 .w .info .gor{font-size:12px;letter-spacing:.03em}
 .w-record{display:flex;align-items:center;gap:7px;flex-wrap:wrap;margin-top:10px;padding-top:9px;border-top:1px solid var(--line);font:700 12px var(--body);color:var(--muted)}
 .w-record b{color:var(--bone);font-size:13px}
+.gor-satir{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-top:8px}.gor-satir .gor{margin-top:0!important}.gv{display:inline-flex;align-items:center;gap:5px;font:700 12px var(--body);color:var(--muted)}.gv b{color:var(--bone)}.gv-ico{opacity:.75}
 .w-record .wg{color:#8fd6a2}.w-record .wl{color:#ff8585}
 .pf{gap:24px 34px}
 .pf .ph{border-radius:10px;overflow:hidden;box-shadow:0 16px 36px rgba(0,0,0,.28)}
@@ -1109,12 +1110,40 @@ function kart(w){
     '<img src="'+fsrc(w.ad,"")+'" alt="'+esc(w.ad)+'" loading="lazy" onerror="fotoHata(this)"></div>'+ 
     '<div class="info"><h3>'+esc(w.ad)+'</h3><p>'+ETIKET[w.s]+'</p>'+ 
     '<div class="w-record"><span class="wg">G <b>'+w.g+'</b></span><span>·</span><span class="wl">M <b>'+w.m+'</b></span><span>·</span><span>'+oy+' maç</span></div>'+ 
-    '<span class="gor">'+(pr?'Profili incele →':'Profili gör →')+'</span></div>';
+    '<div class="gor-satir"><span class="gor">'+(pr?'Profili incele →':'Profili gör →')+'</span><span class="gv" title="Profil görüntülenme">'+GV_IKON+'<b data-gv="'+slug(w.ad)+'">'+gvSay(slug(w.ad))+'</b></span></div></div>';
   return '<a class="w" href="#guresci/'+slug(w.ad)+'">'+ic+'</a>';
 }
 function profilBul(sl){
   for(var i=0;i<GURESCILER.length;i++){var w=GURESCILER[i];if(slug(w.ad)===sl)return w}
   return null;
+}
+/* ====== PROFİL GÖRÜNTÜLENME SAYACI ======
+   Firebase'de /goruntulenme/<kullanici-adi> altında sadece bir sayı tutulur. Artırma sunucu tarafında yapılır (".sv":increment),
+   böylece aynı anda bakanlar birbirinin sayısını ezmez. Her açılış sayılır; sadece güreşçinin kendi profiline bakışı sayılmaz.
+   Firebase kurallarına "goruntulenme" yolu için okuma ve yazma izni ver. */
+var GV={},GV_OK=false;
+var GV_IKON='<svg class="gv-ico" viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2 12s3.6-7 10-7 10 7 10 7-3.6 7-10 7S2 12 2 12z"/><circle cx="12" cy="12" r="3"/></svg>';
+function gvSay(sl){return GV_OK?((GV[sl]|0).toLocaleString("tr-TR")):"–"}
+function gvBoya(){
+  document.querySelectorAll("[data-gv]").forEach(function(el){el.textContent=gvSay(el.getAttribute("data-gv"))});
+}
+async function gvYukle(){
+  if(typeof FB_URL==="undefined"||!FB_URL)return;
+  try{
+    var r=await fetch(FB_URL.replace(/\/$/,"")+"/goruntulenme.json");
+    if(!r.ok)return;
+    var o=await r.json();GV=(o&&typeof o==="object")?o:{};GV_OK=true;gvBoya();
+  }catch(e){}
+}
+async function gvKaydet(w){
+  var sl=slug(w.ad);
+  try{
+    if(typeof FB_URL==="undefined"||!FB_URL)return;
+    if(typeof OTURUM!=="undefined"&&OTURUM&&slug(OTURUM.ad)===sl)return;   /* güreşçinin kendi profiline bakması sayılmaz */
+    var r=await fetch(FB_URL.replace(/\/$/,"")+"/goruntulenme/"+sl+".json",{method:"PUT",body:JSON.stringify({".sv":{"increment":1}})});
+    if(!r.ok)return;
+    gvYukle();
+  }catch(e){}
 }
 var GERI="guresciler";  /* profilden geri dönülecek sayfa (hash) */
 /* güreşçinin hakemlik ve yönetim kurulu görevleri (HAKEMLER ve YONETIM listelerinden otomatik gelir) */
@@ -1141,7 +1170,8 @@ function profilCiz(w){
     (p.sarki&&p.sarki.dosya?'<div class="pf-rol"><span>♪ Profil şarkısı: '+esc(p.sarki.ad||"Şarkı")+'</span></div>':'')+'<div class="pf-tag">'+
     '<div><small>Temsil ettiği yer</small><b>'+esc(p.yer)+'</b></div>'+ 
     '<div><small>Siklet</small><b>'+ETIKET[w.s]+'</b></div>'+ 
-    '<div><small>Toplam maç</small><b>'+toplam+'</b></div></div>'+ 
+    '<div><small>Toplam maç</small><b>'+toplam+'</b></div>'+
+    '<div><small>Profil görüntülenme</small><b data-gv="'+slug(w.ad)+'">'+gvSay(slug(w.ad))+'</b></div></div>'+ 
     '<div class="pf-record"><div class="pf-record-head"><b>Maç karnesi</b><span>%'+oran+' galibiyet</span></div>'+ 
     '<div class="pf-bar" role="img" aria-label="Galibiyet yüzde '+oran+'"><span class="pf-bar-win" style="width:'+oran+'%"></span><span class="pf-bar-loss" style="width:'+(100-oran)+'%"></span></div>'+ 
     '<div class="pf-record-legend"><span>✓ '+w.g+' Galibiyet</span><span>✕ '+w.m+' Mağlubiyet</span></div></div>'+sonrakiHtml+sonHtml+
@@ -3176,7 +3206,7 @@ document.addEventListener("submit",async function(e){
       /* profil sayfasından geri dönüş, profile hangi sayfadan gelindiyse oraya olsun */
       if(simdi!==null&&!profilden)GERI=simdi;
       var w=profilBul(p.slice(8));
-      if(w){profilCiz(w);pw=w;p="guresci";cur="guresciler"}else p="guresciler",cur="guresciler";
+      if(w){profilCiz(w);pw=w;p="guresci";cur="guresciler";gvKaydet(w)}else p="guresciler",cur="guresciler";
     }
     if(pages.indexOf(p)<0)p=cur="anaekran";
     if(p==="yonetici")admCiz();
@@ -3189,6 +3219,7 @@ document.addEventListener("submit",async function(e){
     if(p==="mactalebi"){macFormDoldur();adKilitle();tpCiz("macTaleplerim",["mac"])}
     if(p==="istek"){adKilitle();tpCiz("istekTaleplerim",["istek","sikayet"])}
     if(p==="duyurular")duyuruGordu();
+    if(p==="guresciler"||p==="guresci"||p==="hafif"||p==="orta"||p==="agir")gvYukle();
     document.querySelectorAll("[data-page]").forEach(function(s){s.classList.toggle("on",s.getAttribute("data-page").split(" ").indexOf(p)>=0)});
     document.querySelectorAll("a.item").forEach(function(a){a.setAttribute("aria-current",a.getAttribute("href")==="#"+cur?"page":"false")});
     /* geri dönünce eski kaydırma konumuna dön, diğer durumlarda sayfa başına git */
