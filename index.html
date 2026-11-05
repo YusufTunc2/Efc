@@ -1688,6 +1688,25 @@ function admCiz(){
   admFirebaseKontrol();
 }
 document.addEventListener("submit",function(e){
+  if(e.target.id!=="admUyeEkle")return;
+  e.preventDefault();
+  if(!admin())return;
+  var mail=document.getElementById("admUyeMail").value.trim().toLowerCase();
+  var ad=document.getElementById("admUyeAd").value.trim();
+  var out=document.getElementById("admUyeSonuc");
+  if(!mail||!ad){out.textContent="E-posta ve kullanıcı adı gerekli.";return}
+  var liste=[];try{liste=JSON.parse(localStorage.getItem("efcEkUyeler")||"[]")}catch(x){}
+  if(liste.some(function(x){return x.email.toLowerCase()===mail||slug(x.kullanici)===slug(ad)})||misafirBul(ad)){out.textContent="Bu e-posta veya kullanıcı adı zaten kayıtlı.";return}
+  var chars="ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz23456789!@-_",pw="";
+  var rnd=new Uint32Array(18);if(window.crypto&&crypto.getRandomValues)crypto.getRandomValues(rnd);else for(var q=0;q<rnd.length;q++)rnd[q]=Math.floor(Math.random()*4294967296);
+  for(var q=0;q<18;q++)pw+=chars[rnd[q]%chars.length];
+  liste.push({ad:ad,kullanici:ad,email:mail,bulanik:false,acik:[]});
+  try{localStorage.setItem("efcEkUyeler",JSON.stringify(liste))}catch(x){out.textContent="Üye tarayıcıya kaydedilemedi.";return}
+  MISAFIR.push(liste[liste.length-1]);
+  out.innerHTML="Üye eklendi. Firebase Authentication hesabını şu bilgilerle aç:<br><b>E-posta:</b> "+esc(mail)+"<br><b>Geçici şifre:</b> <code>"+esc(pw)+"</code><br><small>Bu kayıt şimdilik yalnızca bu tarayıcıda saklanır. Diğer cihazlara aktarmak için site dosyasına/yayın verisine eklenmelidir.</small>";
+  e.target.reset();
+});
+document.addEventListener("submit",function(e){
   if(e.target.id!=="admForm")return;
   e.preventDefault();
   var er=document.getElementById("admErr");
@@ -1809,6 +1828,7 @@ function admExtra(){
       '<div class="ar-b"><button class="abtn alt" type="button" data-wact="ysil">Sil</button></div></div>';
   });
   h+='<button class="abtn alt" type="button" data-wact="yekle">+ Kurul üyesi ekle</button>';
+  h+='<h3>Yeni üye ekle</h3><p class="sub">E-posta ve kullanıcı adını gir. Site geçici şifre oluşturur. Ardından bu e-posta ve şifreyle Firebase Authentication → Users → Add user bölümünden hesabı aç.</p>'+    '<form id="admUyeEkle" class="aw" autocomplete="off"><div class="ar-g"><label>E-posta<input id="admUyeMail" type="email" required placeholder="ornek@efc.local"></label><label>Kullanıcı adı<input id="admUyeAd" required maxlength="50" placeholder="Kullanıcı adı"></label></div><button class="abtn" type="submit">Üyeyi oluştur</button><p class="adm-err" id="admUyeSonuc" role="status"></p></form>';
   h+='<h3>Üye hesapları</h3><p class="sub">'+(FB_KEY?'Giriş sistemi <b>açık</b>.':'Giriş sistemi şu an <b>kapalı</b> (kodun başındaki <b>FB_KEY</b> boş).')+
     ' Her güreşçi kendi adıyla (kullanıcı adı) ve şifresiyle girer. Hesabı Firebase konsolunda <b>Authentication → Users → Add user</b> ile aç: e-posta aşağıdaki gibi olmalı, şifreyi güreşçiye sen ver. Verdiğin şifre <b>tek kullanımlıktır</b>: güreşçi ilk girişte yeni şifre belirler. Şifresini unutan olursa hesabı Firebase\'de silip aynı e-postayla yeniden aç, yeniden tek kullanımlık şifre verirsin.</p>'+
     D.GURESCILER.map(function(w){return '<div class="dy"><p><b>'+esc(w.ad)+'</b> · '+esc(slug(w.ad))+'@efc.local</p></div>'}).join("");
@@ -3013,6 +3033,7 @@ setInterval(function(){
    acik:[...]    → bulanıklaştırılmayacak isimler
    Yeni özel üye eklemek için listeye bir satır ekle. Misafirlere anket açılmaz ve "Profilim" bağlantısı çıkmaz. */
 var MISAFIR=[{ad:"Damla",bulanik:true,acik:["Y.Tuğra"]},{ad:"Eftal",bulanik:false,acik:[]},{ad:"Ali Eren",kullanici:"A.Eren",bulanik:false,acik:[]}];
+try{var ekUyeler=JSON.parse(localStorage.getItem("efcEkUyeler")||"[]");if(Array.isArray(ekUyeler))ekUyeler.forEach(function(x){if(x&&x.ad&&!MISAFIR.some(function(m){return slug(m.kullanici||m.ad)===slug(x.kullanici||x.ad)}))MISAFIR.push(x)})}catch(e){}
 function misafirBul(ad){var s=slug(String(ad||""));for(var i=0;i<MISAFIR.length;i++)if(slug(MISAFIR[i].ad)===s||slug(MISAFIR[i].kullanici||"")===s)return MISAFIR[i];return null}
 function girAd(u){
   var s=slug(String(u||"").replace(/@efc\\.local$/i,""));
@@ -3071,7 +3092,7 @@ document.addEventListener("submit",async function(e){
   if(!w){er.textContent="Böyle bir güreşçi yok. Kullanıcı adın güreşçi adındır (örn. Y.Tuğra).";return}
   b.disabled=true;er.textContent="Giriş yapılıyor…";
   try{
-    var r=await fetch("https://identitytoolkit.googleapis.com/v1/accounts:signInWithPassword?key="+encodeURIComponent(FB_KEY),{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({email:slug(w.ad)+"@efc.local",password:p,returnSecureToken:true})});
+    var r=await fetch("https://identitytoolkit.googleapis.com/v1/accounts:signInWithPassword?key="+encodeURIComponent(FB_KEY),{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({email:(misafirBul(w.ad)&&misafirBul(w.ad).email)||slug(w.ad)+"@efc.local",password:p,returnSecureToken:true})});
     var j=await r.json();
     if(!r.ok){
       var m=(j.error&&j.error.message)||"";
