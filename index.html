@@ -3012,10 +3012,10 @@ setInterval(function(){
    bulanik:true  → sitedeki güreşçi/hakem/antrenör/kurul fotoğraflarının yüzü bulanık görünür
    acik:[...]    → bulanıklaştırılmayacak isimler
    Yeni özel üye eklemek için listeye bir satır ekle. Misafirlere anket açılmaz ve "Profilim" bağlantısı çıkmaz. */
-var MISAFIR=[{ad:"Damla",bulanik:true,acik:["Y.Tuğra"]},{ad:"Eftal",bulanik:false,acik:[]}];
-function misafirBul(ad){var s=slug(String(ad||""));for(var i=0;i<MISAFIR.length;i++)if(slug(MISAFIR[i].ad)===s)return MISAFIR[i];return null}
+var MISAFIR=[{ad:"Damla",bulanik:true,acik:["Y.Tuğra"]},{ad:"Eftal",bulanik:false,acik:[]},{ad:"Ali Eren",kullanici:"A.Eren",bulanik:false,acik:[]}];
+function misafirBul(ad){var s=slug(String(ad||""));for(var i=0;i<MISAFIR.length;i++)if(slug(MISAFIR[i].ad)===s||slug(MISAFIR[i].kullanici||"")===s)return MISAFIR[i];return null}
 function girAd(u){
-  var s=slug(String(u||"").replace(/@efc\.local$/i,""));
+  var s=slug(String(u||"").replace(/@efc\\.local$/i,""));
   for(var n=0;n<GURESCILER.length;n++)if(slug(GURESCILER[n].ad)===s)return GURESCILER[n];
   var m=misafirBul(s);if(m)return {ad:m.ad,s:"misafir",misafir:true};
   return null;
