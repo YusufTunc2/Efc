@@ -1005,6 +1005,9 @@ var VERI_P=null,VERI=null,FOTO={},CANLI_Z=0;   /* veri.json / taslaktan gelen pr
   try{var x=new XMLHttpRequest();x.open("GET","veri.json?"+Date.now(),false);x.send();if(x.status===200)v=JSON.parse(x.responseText)}catch(e){}
   try{var cz=localStorage.getItem("efcCanli");if(cz){var cj=JSON.parse(cz);if(cj&&cj.v&&cj.z){v=cj.v;CANLI_Z=cj.z}}}catch(e){}   /* yöneticilerin "Yayınla" ile Firebase'e koyduğu son veri */
   window.YETKILI_Y=(v&&Array.isArray(v.YETKILI))?v.YETKILI:[];   /* sadece YAYINDAKİ veriden: alt yönetici yetkisi taslakla değiştirilemez */
+  /* Eftal: M.Kerem için içerik düzenleme hesabı. Mevcut panel yetkileri kategori bazlı ve site genelindedir. */
+  var eftalKaydi=window.YETKILI_Y.filter(function(y){return y&&slug(y.ad)==="eftal"})[0];
+  if(eftalKaydi)eftalKaydi.izin=["foto","muzik"];else window.YETKILI_Y.push({ad:"Eftal",izin:["foto","muzik"]});
   window.ANKET_Y=(v&&Array.isArray(v.ANKET))?v.ANKET:[];   /* girişte zorunlu açılan anketler de sadece yayındaki veriden (taslak anket kimseye gösterilmez) */
   try{if(sessionStorage.getItem("efcAdmin")==="1"){var t=localStorage.getItem("efcTaslak");if(t)v=JSON.parse(t)}}catch(e){}
   if(v&&Array.isArray(v.YAKIN)&&Array.isArray(v.MACLAR)&&Array.isArray(v.GECMIS)){YAKIN=v.YAKIN;MACLAR=v.MACLAR;GECMIS=v.GECMIS;VERI=v;if(Array.isArray(v.GURESCILER)&&v.GURESCILER.length)GURESCILER=v.GURESCILER;if(v.INSTAGRAM&&typeof v.INSTAGRAM==="object")INSTAGRAM=v.INSTAGRAM;if(v.FOTO&&typeof v.FOTO==="object")FOTO=v.FOTO}
@@ -1500,6 +1503,8 @@ function yetkiBul(email){
   for(var i=0;i<l.length;i++)if(l[i]&&l[i].ad&&slug(l[i].ad)+"@efc.local"===email)return l[i];
   return null;
 }
+function eftalOzel(){try{return slug(sessionStorage.getItem("efcKimAd")||"")==="eftal"&&!!sessionStorage.getItem("efcYetki")}catch(e){return false}}
+function eftalKopya(o){return JSON.parse(JSON.stringify(o||{}))}
 function yetkiTemiz(y){return JSON.stringify((y&&Array.isArray(y.izin)?y.izin:[]).filter(function(k){return IZIN_KEY.indexOf(k)>=0}).sort())}
 function tarihMetni(t){
   var d=new Date(Date.parse(t));
@@ -1600,6 +1605,11 @@ function admCiz(){
   if(!ADM_D.ANTRENORLER)ADM_D.ANTRENORLER=[];
   if(!ADM_D.ANTRENOR)ADM_D.ANTRENOR={};
   if(!ADM_D.GIRISMUZIK)ADM_D.GIRISMUZIK=GMUZIK.map(function(m){return {ad:m.ad,dosya:m.dosya}});
+  if(eftalOzel()){
+    var ep=ADM_D.PROFIL["M.Kerem"]||{},es=ep.sarki||{};
+    el.innerHTML='<h2>Eftal · M. Kerem içerikleri</h2><p class="adm-note">Bu hesap yalnızca M. Kerem’in profil fotoğrafını ve profil şarkısını değiştirebilir.</p>'+      '<h3>M. Kerem fotoğrafı</h3><div class="fo"><img src="'+fsrc("M.Kerem","")+'" alt="M. Kerem fotoğrafı" onerror="fotoHata(this)"><input type="file" accept="image/*" data-eftal-foto="1"></div>'+      '<h3>M. Kerem profil şarkısı</h3><div class="ar-g"><label>Şarkı adı<input data-eftal-song="ad" maxlength="120" value="'+esc(es.ad||"")+'"></label><label>YouTube / ses bağlantısı<input data-eftal-song="dosya" type="url" maxlength="1000" placeholder="https://..." value="'+esc(es.dosya||"")+'"></label></div>'+      '<div class="adm-top"><button class="abtn" type="button" data-act="eftal-yayinla">Değişiklikleri yayınla</button><button class="abtn alt" type="button" data-act="cikis">Çıkış</button></div>';
+    admDurumGuncelle();return;
+  }
   var taslak=false;try{taslak=!!localStorage.getItem("efcTaslak")}catch(e){}
   var h='<h2>Yönetici paneli</h2>'+
     '<div class="adm-note">'+(taslak?'<b>Taslak var.</b> Yaptığın değişiklikleri sadece sen görüyorsun.':'Taslak yok, şu an yayındaki veriyi görüyorsun.')+
@@ -1698,6 +1708,7 @@ document.addEventListener("click",function(e){
   }
   if(!ADM_D)return;
   if(act==="yayinla"){yayinla();return}
+  if(act==="eftal-yayinla"){eftalYayinla();return}
   if(act==="indir"){
     var a=document.createElement("a");
     a.href=URL.createObjectURL(new Blob([JSON.stringify(ADM_D,null,1)],{type:"application/json"}));
@@ -1981,6 +1992,17 @@ function fotoKucult(file,cb){
 }
 document.addEventListener("change",function(e){
   var t=e.target;if(!admin()||!ADM_D||!t.getAttribute)return;
+  if(eftalOzel()&&(t.hasAttribute("data-eftal-foto")||t.hasAttribute("data-eftal-song"))){
+    if(t.hasAttribute("data-eftal-foto")){
+      var ef=t.files&&t.files[0];t.value="";if(!ef)return;
+      fotoKucult(ef,function(u){ADM_D.FOTO[slug("M.Kerem")]=u;admKaydet();admCiz()});return;
+    }
+    var fld=t.getAttribute("data-eftal-song"),val=t.value.trim(),pr=ADM_D.PROFIL["M.Kerem"]||(ADM_D.PROFIL["M.Kerem"]={yer:"",hikaye:[]}),sk=pr.sarki||{ad:"",dosya:""};
+    if(fld==="ad")sk.ad=val;
+    else if(val){var eu=mzLink(val);if(!mzGecerli(eu)){alert("Geçerli bir YouTube veya https:// ses bağlantısı gir.");return}sk.dosya=eu}else sk.dosya="";
+    if(sk.ad||sk.dosya)pr.sarki=sk;else delete pr.sarki;
+    admKaydet();return;
+  }
   var f=t.getAttribute("data-wf"),ft=t.hasAttribute("data-wfoto");if(!f&&!ft)return;
   var D=ADM_D,y0=window.scrollY,row=t.closest&&t.closest(".aw");
   if(f==="hak"){D.HAKKINDA=t.value.split(/\n\s*\n/).map(function(x){return x.trim()}).filter(Boolean);admKaydet();return}
@@ -2425,6 +2447,35 @@ async function veriCek(){
       }catch(e){}
     }
   }catch(e){}
+}
+async function eftalYayinla(){
+  if(!eftalOzel()||!ADM_D){alert("Bu işlem için Eftal hesabı gerekli.");return}
+  if(!FB_URL){alert("Firebase adresi tanımlı değil.");return}
+  var base=null;
+  try{var raw=localStorage.getItem("efcCanli");if(raw){var j=JSON.parse(raw);if(j&&j.v)base=j.v}}catch(e){}
+  if(!base&&VERI)base=VERI;
+  if(!base){alert("Yayındaki veri bulunamadı. Ana yönetici önce site verisini yayınlamalı.");return}
+  var out=eftalKopya(base),key=slug("M.Kerem");
+  out.FOTO=out.FOTO||{};out.PROFIL=out.PROFIL||{};
+  if(Object.prototype.hasOwnProperty.call(ADM_D.FOTO||{},key))out.FOTO[key]=ADM_D.FOTO[key];else delete out.FOTO[key];
+  var src=(ADM_D.PROFIL&&ADM_D.PROFIL["M.Kerem"]&&ADM_D.PROFIL["M.Kerem"].sarki)||null;
+  var target=eftalKopya(out.PROFIL["M.Kerem"]||{yer:"",hikaye:[]});
+  if(src&&((src.ad||"").trim()||(src.dosya||"").trim())){
+    if(!src.dosya){alert("Şarkı bağlantısını da gir.");return}
+    target.sarki={ad:String(src.ad||"").trim(),dosya:mzLink(src.dosya)};
+    if(!mzGecerli(target.sarki.dosya)){alert("Geçerli bir YouTube veya https:// ses bağlantısı gir.");return}
+  }else delete target.sarki;
+  out.PROFIL["M.Kerem"]=target;
+  if(!SOH){var pw=prompt("Yayınlamak için sohbet şifresini gir:");if(!pw)return;await sohAc(pw.trim().toLowerCase(),true);if(!SOH){alert("Sohbet şifresi yanlış.");return}}
+  if(!confirm("Yalnızca M. Kerem’in fotoğrafı ve profil şarkısı yayınlanacak. Onaylıyor musun?"))return;
+  try{
+    var d=JSON.stringify(out),z=Date.now(),y="Eftal";
+    var sig=await crypto.subtle.sign({name:"ECDSA",hash:"SHA-256"},SOH.imza,enc.encode(JSON.stringify([d,z,y])));
+    await fb("/veri","",{d:d,z:z,y:y,s:b64(sig)});
+    await fbIs("/veriz","PUT",z);
+    try{localStorage.setItem("efcCanli",JSON.stringify({z:z,v:out}));localStorage.removeItem("efcTaslak");localStorage.removeItem("efcTaslakZaman")}catch(e){}
+    alert("M. Kerem’in fotoğrafı ve profil şarkısı yayınlandı.");location.reload();
+  }catch(err){alert("Yayınlanamadı. Firebase bağlantısını ve kurallarını kontrol et.")}
 }
 async function yayinla(){
   if(!FB_URL){alert("FB_URL boş.");return}
@@ -2931,7 +2982,7 @@ setInterval(function(){
    bulanik:true  → sitedeki güreşçi/hakem/antrenör/kurul fotoğraflarının yüzü bulanık görünür
    acik:[...]    → bulanıklaştırılmayacak isimler
    Yeni özel üye eklemek için listeye bir satır ekle. Misafirlere anket açılmaz ve "Profilim" bağlantısı çıkmaz. */
-var MISAFIR=[{ad:"Damla",bulanik:true,acik:["Y.Tuğra"]}];
+var MISAFIR=[{ad:"Damla",bulanik:true,acik:["Y.Tuğra"]},{ad:"Eftal",bulanik:false,acik:[]}];
 function misafirBul(ad){var s=slug(String(ad||""));for(var i=0;i<MISAFIR.length;i++)if(slug(MISAFIR[i].ad)===s)return MISAFIR[i];return null}
 function girAd(u){
   var s=slug(String(u||"").replace(/@efc\.local$/i,""));
@@ -3820,7 +3871,7 @@ document.addEventListener("submit",async function(e){
     var p=PROFIL[w.ad]||{},tag=ust.querySelector(".pf-tag"),hik=ust.querySelector(".pf-hikaye");
     if(tag&&p.hamle){var d=document.createElement("div");d.innerHTML='<small>Favori hamle / stil</small><b></b>';d.querySelector("b").textContent=p.hamle;tag.appendChild(d)}
     var iz=izin();
-    if(hik&&(iz.yer||iz.hamle||iz.hikaye)&&typeof OTURUM!=="undefined"&&OTURUM&&OTURUM.ad===w.ad&&typeof FB_KEY!=="undefined"&&FB_KEY){
+    if(hik&&(iz.yer||iz.hamle||iz.hikaye)&&typeof OTURUM!=="undefined"&&OTURUM&&((OTURUM.ad===w.ad)||(OTURUM.ad==="Eftal"&&w.ad==="M.Kerem"))&&typeof FB_KEY!=="undefined"&&FB_KEY){
       var b=document.createElement("button");b.type="button";b.className="abtn";b.textContent="Profilimi düzenle";b.style.margin="0 0 24px";
       b.onclick=function(){formAc(w,hik.parentNode,b)};
       hik.parentNode.insertBefore(b,hik);
