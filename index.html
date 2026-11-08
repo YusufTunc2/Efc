@@ -1959,7 +1959,7 @@ function admExtra(){
     D.GURESCILER.map(function(w){return '<div class="dy"><p><b>'+esc(w.ad)+'</b> · '+esc(slug(w.ad))+'@efc.local</p></div>'}).join("");
   h+='<h3>Hakkında</h3><textarea id="admHak" data-wf="hak" rows="7">'+esc(D.HAKKINDA.join("\n\n"))+'</textarea>';
   h+=admMuzik(D)+admGirisMuzik(D);
-  return onlineBolum()+(altYon()?admYetkiNot():admYetkiBolum(D)+admProfilIzin(D)+misafirBolum())+admAnketBolum(D)+h;
+  return onlineBolum()+(altYon()?'':'<h3>Maç oyları</h3><div id="tahminAdmKutu"><p class="sub">Yükleniyor…</p></div>')+(altYon()?admYetkiNot():admYetkiBolum(D)+admProfilIzin(D)+misafirBolum())+admAnketBolum(D)+h;
 }
 /* ====== ÖZEL ÜYELER (misafir) GİRİŞ DURUMU (sadece ana yönetici) ======
    Özel üyeler "Şu an sitede" listesinde ve ana ekrandaki aktif kişilerde görünmez; burada son görülme zamanları yazar. */
@@ -3434,7 +3434,7 @@ document.addEventListener("submit",async function(e){
       if(!ctx){var AC=window.AudioContext||window.webkitAudioContext;if(!AC)return;
         ctx=new AC();gain=ctx.createGain();ctx.createMediaElementSource(a).connect(gain);gain.connect(ctx.destination)}
       if(ctx.state==="suspended")ctx.resume();
-      gain.gain.value=seviye;
+      gain.gain.value=(mute||seviye===0)?0:seviye;
     }catch(e){}
   }
 
@@ -3448,15 +3448,20 @@ document.addEventListener("submit",async function(e){
   document.body.appendChild(ytKutu);
 
   function paused(){return mod==="y"?!ytCalan:a.paused}
-  function setMute(b){
-    mute=!!b;a.muted=mute;
-    if(ytHazir){try{mute?yt.mute():yt.unMute()}catch(e){}}
-    ui();
+  /* ses 0 iken gerçekten sessize alınır (iPhone'da volume değişmez, YouTube'da unMute volume 0'ı bozabilir; muted her yerde çalışır) */
+  function sesUygula2(){
+    var s=mute||seviye===0;
+    a.muted=s;
+    if(gain)gain.gain.value=s?0:seviye;
+    if(ytHazir){try{
+      if(s){yt.setVolume(0);yt.mute()}
+      else{yt.unMute();yt.setVolume(Math.max(1,Math.round(seviye*100)))}
+    }catch(e){}}
   }
+  function setMute(b){mute=!!b;sesUygula2();ui()}
   function sesUygula(v){
     seviye=v;try{a.volume=v}catch(e){}
-    if(gain)gain.gain.value=v;
-    if(ytHazir){try{yt.setVolume(Math.round(v*100))}catch(e){}}
+    sesUygula2();ui();
   }
   bNext.innerHTML=svg(P.next);
   bLst.innerHTML=svg(P.list);
@@ -3497,7 +3502,7 @@ document.addEventListener("submit",async function(e){
     yt=new window.YT.Player("mYT",{width:200,height:200,playerVars:pv,events:{
       onReady:function(){
         ytHazir=true;
-        try{yt.setVolume(Math.round(seviye*100));mute?yt.mute():yt.unMute()}catch(e){}
+        sesUygula2();
         if(ytBekle){var id=ytBekle;ytBekle=null;if(mod==="y")ytYukle(id)}
       },
       onStateChange:function(e){
@@ -3738,7 +3743,7 @@ document.addEventListener("submit",async function(e){
       if(!ctx){var AC=window.AudioContext||window.webkitAudioContext;if(!AC)return;
         ctx=new AC();gain=ctx.createGain();ctx.createMediaElementSource(a).connect(gain);gain.connect(ctx.destination)}
       if(ctx.state==="suspended")ctx.resume();
-      gain.gain.value=seviye;
+      gain.gain.value=(mute||seviye===0)?0:seviye;
     }catch(e){}
   }
   var ytKutu=document.createElement("div");
@@ -4638,10 +4643,39 @@ function anketKart(a,r){
   var LKEY="efcTahmin_"+benSl;
   function yerelOku(){try{return JSON.parse(localStorage.getItem(LKEY)||"{}")||{}}catch(e){return{}}}
   function yerelYaz(id,p){try{var o=yerelOku();o[id]=p;localStorage.setItem(LKEY,JSON.stringify(o))}catch(e){}}
-  async function idToken(){
+  var _tk=null,_tkP=null;
+  function idToken(){
+    if(_tk&&_tk.e>Date.now())return Promise.resolve(_tk.v);
+    if(_tkP)return _tkP;
+    _tkP=idTokenYeni().then(function(v){_tkP=null;return v},function(e){_tkP=null;throw e});
+    return _tkP;
+  }
+  async function idTokenYeni(){
     var r=await fetch("https://securetoken.googleapis.com/v1/token?key="+encodeURIComponent(FB_KEY),{method:"POST",headers:{"Content-Type":"application/x-www-form-urlencoded"},body:"grant_type=refresh_token&refresh_token="+encodeURIComponent(OTURUM.r)});
     if(!r.ok)throw new Error("oturum");
-    return (await r.json()).id_token;
+    var j=await r.json();
+    _tk={v:j.id_token,e:Date.now()+(Math.max(+j.expires_in||3600,300)*1000)-120000};
+    return j.id_token;
+  }
+  var _benYuk=false;
+  async function sayaclarCek(){
+    try{
+      var r=await fetch(KOK+"/tahmin.json");if(!r.ok)return;
+      var o=(await r.json())||{};
+      YAKIN.forEach(function(x){var id=yakinId(x);SAYAC[id]=(o[id]&&typeof o[id]==="object")?o[id]:{}});
+    }catch(e){}
+  }
+  async function benimlerCek(){
+    if(!girisli)return;
+    var y=yerelOku(),ids=YAKIN.map(yakinId);
+    ids.forEach(function(id){if(y[id])BEN[id]=y[id]});
+    if(_benYuk)return;
+    try{
+      var t=await idToken(),r=await fetch(KOK+"/tahminYapti/"+benSl+".json?auth="+encodeURIComponent(t));
+      if(!r.ok)return;var v=(await r.json())||{};
+      ids.forEach(function(id){if(typeof v[id]==="string"&&v[id]){BEN[id]=v[id];yerelYaz(id,v[id])}});
+      _benYuk=true;
+    }catch(e){}
   }
   async function sayacCek(id){
     try{
@@ -4684,7 +4718,9 @@ function anketKart(a,r){
     });
   }
   async function yukle(){
-    await Promise.all(YAKIN.map(function(x){var id=yakinId(x);return Promise.all([sayacCek(id),benimCek(id)])}));
+    if(girisli){var y=yerelOku();YAKIN.forEach(function(x){var id=yakinId(x);if(y[id])BEN[id]=y[id]});idToken().catch(function(){})}
+    ciz();
+    await Promise.all([sayaclarCek(),benimlerCek()]);
     ciz();
   }
   document.addEventListener("click",async function(e){
@@ -4726,13 +4762,18 @@ function anketKart(a,r){
   async function liderCiz(){
     var el=document.getElementById("tahminLider");if(!el)return;
     if(!girisli){el.innerHTML='<p class="bos">Liderlik tablosunu görmek için üye girişi gerekli.</p>';return}
-    el.innerHTML='<p class="bos">Yükleniyor…</p>';
+    var onb=null;try{onb=JSON.parse(localStorage.getItem("efcLiderOnb")||"null")}catch(e){}
+    if(onb){liderYaz(el,onb)}else el.innerHTML='<p class="bos">Yükleniyor…</p>';
     var tum;
     try{
       var t=await idToken(),r=await fetch(KOK+"/tahminYapti.json?auth="+encodeURIComponent(t));
       if(!r.ok)throw new Error("izin");
       tum=await r.json()||{};
-    }catch(e){el.innerHTML='<p class="adm-err">Liderlik tablosu yüklenemedi. Firebase kurallarında <b>tahminYapti</b> yoluna giriş yapmış kullanıcılar için okuma izni ver.</p>';return}
+      try{localStorage.setItem("efcLiderOnb",JSON.stringify(tum))}catch(e2){}
+    }catch(e){if(onb)return;el.innerHTML='<p class="adm-err">Liderlik tablosu yüklenemedi. Firebase kurallarında <b>tahminYapti</b> yoluna giriş yapmış kullanıcılar için okuma izni ver.</p>';return}
+    liderYaz(el,tum);
+  }
+  function liderYaz(el,tum){
     var kazanan={};
     GECMIS.forEach(function(g,i){kazanan[gecmisId(i)]=slug(g.k)});
     var satir=Object.keys(tum).map(function(u){
@@ -4751,6 +4792,43 @@ function anketKart(a,r){
   }
   function hashKontrol(){if(location.hash==="#tahmin")liderCiz()}
   window.addEventListener("hashchange",hashKontrol);hashKontrol();
+  /* ---- yönetici: maç oylarını kim kime vermiş ---- */
+  var TA_Z=0;
+  async function tahminAdmCiz(){
+    var el=document.getElementById("tahminAdmKutu");if(!el)return;
+    TA_Z=Date.now();
+    var o;
+    if(!girisli){el.innerHTML='<p class="sub">Oyları görmek için yönetici hesabınla (Y.Tuğra / Kemal / Eren) üye girişi yapmış olman gerekir. Sadece yönetici şifresiyle girdiysen çıkış yapıp üye hesabınla gir.</p>';return}
+    try{var t=await idToken(),r=await fetch(KOK+"/tahminYapti.json?auth="+encodeURIComponent(t));if(!r.ok)throw new Error("izin");o=(await r.json())||{}}
+    catch(e){el.innerHTML='<p class="adm-err">Oylar okunamadı. Oturumun süresi dolmuş olabilir, çıkış yapıp tekrar giriş yap.</p>';return}
+    var votes={};
+    Object.keys(o).forEach(function(u){var m=o[u]||{};Object.keys(m).forEach(function(id){(votes[id]=votes[id]||[]).push({u:u,p:m[id]})})});
+    var et={},win={},sira=[];
+    YAKIN.forEach(function(x){var id=yakinId(x);if(!et[id]){et[id]=[x.a,x.b];sira.push(id)}});
+    for(var i=GECMIS.length-1;i>=0;i--){var gi=gecmisId(i);if(!et[gi]){et[gi]=[GECMIS[i].a,GECMIS[i].b];win[gi]=slug(GECMIS[i].k);sira.push(gi)}}
+    Object.keys(votes).forEach(function(id){if(!et[id]){et[id]=null;sira.push(id)}});
+    var h='';
+    sira.forEach(function(id){
+      var v=votes[id]||[],e=et[id];
+      if(!v.length&&!(e&&!win[id]))return;
+      if(!e){h+='<div class="dy"><p><b>'+esc(id)+'</b></p><small>'+v.map(function(z){return esc(adBul(z.u))+' → '+esc(adBul(z.p))}).join(", ")+'</small></div>';return}
+      var sa=slug(e[0]),sb=slug(e[1]);
+      function yan(ad,sl){
+        var l=v.filter(function(z){return z.p===sl}).map(function(z){return esc(adBul(z.u))});
+        return '<small>'+(win[id]===sl?'✓ ':'')+esc(ad)+' diyenler ('+l.length+'): '+(l.length?l.join(", "):'—')+'</small>';
+      }
+      h+='<div class="dy"><p><b>'+esc(e[0])+' vs '+esc(e[1])+'</b> <span class="chip">'+(win[id]?'Bitti':'Bekliyor')+' · '+v.length+' oy</span></p>'+yan(e[0],sa)+yan(e[1],sb)+'</div>';
+    });
+    el.innerHTML=h||'<p class="sub">Henüz oy yok.</p>';
+  }
+  setInterval(function(){
+    if(typeof admin==="function"&&admin()&&location.hash==="#yonetici"&&!document.hidden&&document.getElementById("tahminAdmKutu")){
+      var k=document.getElementById("tahminAdmKutu");
+      if(Date.now()-TA_Z>15000||/Yükleniyor/.test(k.textContent))tahminAdmCiz();
+    }
+  },1500);
+
+
 
 })();
 </script>
