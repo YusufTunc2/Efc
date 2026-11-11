@@ -135,6 +135,16 @@ footer .wrap{display:flex;justify-content:space-between;flex-wrap:wrap;gap:10px}
 .home-match .count b{font-size:27px}
 .home-match .f2f{margin-top:0;border-radius:6px}
 .home-match .hk{margin-top:0}
+.home-match.ert{border-left-color:#f2c94c}
+.home-match.ert .zaman .count,.home-match.ert .f2f{display:none}
+.home-match.ert .tarih{text-decoration:line-through;opacity:.6}
+.ert-chip{display:inline-block;font:800 12px/1 var(--body);letter-spacing:.1em;text-transform:uppercase;padding:6px 10px;border:1px solid #f2c94c;color:#f2c94c;border-radius:4px}
+.poster-fight.ert{opacity:.85}.poster-ert{margin-top:8px;font:800 13px var(--body);letter-spacing:.12em;text-transform:uppercase;color:#f2c94c}
+.poster-fight.ert .poster-date{text-decoration:line-through;opacity:.6}
+.mzr{border-top:1px solid var(--line);padding-top:12px}
+.mzr-f{display:grid;gap:10px;margin-top:12px;max-width:560px}
+.mzr-f label{display:grid;gap:6px;font-weight:700}
+.mzr-f textarea{width:100%;box-sizing:border-box;padding:10px;background:var(--surface);color:inherit;border:1px solid var(--line);font:inherit;border-radius:4px}
 .w .info{min-height:112px}
 .w .info .gor{font-size:12px;letter-spacing:.03em}
 .w-record{display:flex;align-items:center;gap:7px;flex-wrap:wrap;margin-top:10px;padding-top:9px;border-top:1px solid var(--line);font:700 12px var(--body);color:var(--muted)}
@@ -785,6 +795,7 @@ kilitUygula();window.addEventListener("hashchange",kilitUygula);
     <a class="item" id="admLink" href="#yonetici"><span class="nav-ico">⚙</span><span>Yönetici paneli</span></a>
     <a class="item" id="sohLink" href="#sohbet" style="display:none"><span class="nav-ico">☷</span><span>Yönetici sohbeti</span></a>
     <a class="item" id="macLink" href="#mactalepleri" style="display:none"><span class="nav-ico">⚑</span><span>Maç talepleri</span></a>
+    <a class="item" id="mazeretLink" href="#mazeretler" style="display:none"><span class="nav-ico">⏸</span><span>Mazeretler</span></a>
     <a class="item" id="onayLink" href="#onaylar" style="display:none"><span class="nav-ico">✓</span><span>KVKK / görsel onayları</span></a>
     <a class="item" id="anketLink" href="#anketsonuc" style="display:none"><span class="nav-ico">▥</span><span>Anket sonuçları</span></a>
     <a class="item" id="sikLink" href="#sikayetler" style="display:none"><span class="nav-ico">☏</span><span>Gelen istek / şikayet</span></a>
@@ -936,6 +947,7 @@ kilitUygula();window.addEventListener("hashchange",kilitUygula);
   </div></section>
   <section class="block" data-page="mactalepleri" style="border-bottom:0"><div class="wrap adm" id="macKutu"></div></section>
   <section class="block" data-page="sikayetler" style="border-bottom:0"><div class="wrap adm" id="sikKutu"></div></section>
+  <section class="block" data-page="mazeretler" style="border-bottom:0"><div class="wrap adm" id="mazeretKutu"></div></section>
   <section class="block" data-page="uyetalepleri" style="border-bottom:0"><div class="wrap adm" id="uyeKutu"></div></section>
   <section class="block" data-page="onaylar" style="border-bottom:0"><div class="wrap adm" id="onayKutu"></div></section>
   <section class="block" data-page="anketsonuc" style="border-bottom:0"><div class="wrap adm" id="anketKutu"></div></section>
@@ -2713,7 +2725,7 @@ function duyuruCiz(){
   document.addEventListener("click",function(){bp.classList.remove("open")});
   document.getElementById("bildKapat").addEventListener("click",function(e){e.stopPropagation();kapat()});
   bn.addEventListener("click",function(){kapat();location.hash="#duyurular"});
-  if(admin()){var altY=altYon();if(!altY){document.getElementById("sohLink").style.display="block";document.getElementById("onayLink").style.display="block"}if(yz("talep")){document.getElementById("sikLink").style.display="block";document.getElementById("macLink").style.display="block";document.getElementById("uyeTalepLink").style.display="block"}if(yz("anket"))document.getElementById("anketLink").style.display="block"}
+  if(admin()){var altY=altYon();if(!altY){document.getElementById("sohLink").style.display="block";document.getElementById("onayLink").style.display="block"}if(yz("talep")){document.getElementById("sikLink").style.display="block";document.getElementById("macLink").style.display="block";document.getElementById("mazeretLink").style.display="block";document.getElementById("uyeTalepLink").style.display="block"}if(yz("anket"))document.getElementById("anketLink").style.display="block"}
   duyuruCek();setInterval(duyuruCek,60000);
   setInterval(function(){if(location.hash==="#sohbet"&&!document.hidden)sohCek()},15000);
   /* anlık akış: Firebase yeni kayıt olunca haber verir, ardından mevcut çekme fonksiyonu çalışır (yedek olarak yavaş kontrol de açık kalır) */
@@ -2848,7 +2860,7 @@ async function sikKurulum(){
    Her gönderiye rastgele bir takip kodu verilir. Yönetimin yanıtı bu koddan türetilen anahtarla şifrelenip /yanit altına yazılır
    ve yönetim imzasıyla doğrulanır: kodu bilen (gönderen) okuyabilir, başkası okuyamaz, sahte yanıt kabul edilmez. */
 var TENEFFUS=["1. teneffüs","2. teneffüs","3. teneffüs","4. teneffüs","5. teneffüs","6. teneffüs","Öğle arası"];   /* sıra / isimler buradan değişir */
-var DURUM={onay:["Onaylandı","ok"],red:["Reddedildi","no"],oneri:["Başka zaman önerildi","bek"],bakildi:["İncelendi","bek"],cozuldu:["Çözüldü","ok"]};
+var DURUM={onay:["Onaylandı","ok"],red:["Reddedildi","no"],oneri:["Başka zaman önerildi","bek"],bakildi:["İncelendi","bek"],cozuldu:["Çözüldü","ok"],iptal:["Erteleme kaldırıldı","bek"]};
 function kodUret(){var a=crypto.getRandomValues(new Uint8Array(10)),s="";for(var i=0;i<a.length;i++)s+=("0"+a[i].toString(16)).slice(-2);return s}
 function kodGoster(k){return (String(k).match(/.{1,5}/g)||[]).join("-")}
 function kodTemizle(t){return String(t).toLowerCase().replace(/[^0-9a-f]/g,"")}
@@ -2939,6 +2951,7 @@ var SIKM={
   uye:{kutu:"uyeKutu",list:"uyeList",bas:"Üyelik talepleri",alt:"Yeni üyelik isteyen kişilerin bilgileri. Talepler şifreli saklanır ve sadece yetkili yönetim görür."},
   mac:{kutu:"macKutu",list:"macList",bas:"Maç talepleri",alt:"Ziyaretçilerin istediği maçlar, en yenisi üstte. Onay, ret ya da başka zaman önerisi yazdığında talebi yapan kişi bunu \"Gönderdiklerim\" bölümünde görür. Sadece yönetim görür."}
 ,
+  mazeret:{kutu:"mazeretKutu",list:"mazeretList",bas:"Mazeretler",alt:"Maçı olan güreşçilerin bildirdiği mazeretler, en yenisi üstte. \"Onaylandı, maç ertelendi\" seçip yanıtlarsan o maçın üstünde herkese \"Ertelendi\" yazar. Maçın tarihini panelden değiştirdiğinde etiket kendiliğinden kalkar. Sadece yönetim görür."},
   anket:{kutu:"anketKutu",list:"anketList",bas:"Anket sonuçları",alt:"Anketlere gelen cevaplar. Cevaplar şifreli saklanır, sadece yönetim açabilir. Anonim seçen katılımcının adı kaydedilmez; kimliğini açık bırakanların adı ve bilgileri cevabın yanında görünür."},
   onay:{kutu:"onayKutu",list:"onayList",bas:"Onaylar",alt:"Giriş yapan güreşçilerin KVKK onayı ve görsel paylaşım izni. Kayıtlar şifreli saklanır, sadece yönetim görür. KVKK onayı ve görsel paylaşım izni zorunludur, ikisini de vermeyen güreşçi siteyi göremez."}
 };
@@ -2958,7 +2971,9 @@ function sikCiz(mod){
   sikCek();
 }
 function kartA(d){
-  var ic=(d.t==="mac"&&d.g1)
+  var ic=(d.t==="mazeret")
+    ?'<div class="mc-vs">'+esc(d.g1)+' <i>vs</i> '+esc(d.g2)+'</div>'+(d.mt&&!isNaN(Date.parse(d.mt))?'<p>'+esc(tarihMetni(d.mt))+'</p>':'')+'<p><b>Mazeret:</b> '+esc(d.m)+'</p>'
+    :(d.t==="mac"&&d.g1)
     ?'<div class="mc-vs">'+esc(d.g1)+' <i>vs</i> '+esc(d.g2)+'</div><p>'+esc(gunMetni(d.gun))+' · '+esc(d.tn)+'</p>'
     :'<p>'+esc(d.m)+'</p>'+(d.t==="uye"&&d.iletisim?'<p><b>İletişim:</b> '+esc(d.iletisim)+'</p>':'');
   var btn=d.t==="uye"?'<span class="bos" style="align-self:center">İletişim bilgisi üzerinden dönüş yap</span>':(d.k?'<button class="abtn alt" type="button" data-yanac="'+esc(d.id)+'" style="font-size:15px;padding:8px 12px;min-height:0">Yanıtla</button>':'<span class="bos" style="align-self:center">Eski mesaj, yanıt gönderilemez.</span>');
@@ -2983,10 +2998,10 @@ async function sikCek(){
       var raw=await crypto.subtle.decrypt({name:"RSA-OAEP"},pk,ub64(o[id].k));
       var ak=await crypto.subtle.importKey("raw",raw,"AES-GCM",false,["decrypt"]),cp=o[id].c.split(".");
       var m=JSON.parse(dec.decode(await crypto.subtle.decrypt({name:"AES-GCM",iv:ub64(cp[0])},ak,ub64(cp[1]))));
-      l.push({id:id,a:String(m.a||""),m:String(m.m||""),t:m.t==="istek"?"istek":m.t==="mac"?"mac":m.t==="onay"?"onay":m.t==="uye"?"uye":"sikayet",z:+m.z||0,kv:!!m.kvkk,gr:!!m.gorsel,
-        k:kodTemizle(m.k||"").length===20?kodTemizle(m.k):"",g1:String(m.g1||""),g2:String(m.g2||""),gun:String(m.gun||""),tn:String(m.tn||""),iletisim:String(m.iletisim||"")});
+      l.push({id:id,a:String(m.a||""),m:String(m.m||""),t:m.t==="istek"?"istek":m.t==="mac"?"mac":m.t==="onay"?"onay":m.t==="uye"?"uye":m.t==="mazeret"?"mazeret":"sikayet",z:+m.z||0,kv:!!m.kvkk,gr:!!m.gorsel,
+        k:kodTemizle(m.k||"").length===20?kodTemizle(m.k):"",g1:String(m.g1||""),g2:String(m.g2||""),gun:String(m.gun||""),tn:String(m.tn||""),iletisim:String(m.iletisim||""),mt:String(m.mt||"")});
     }catch(e){}}
-    l=l.filter(function(d){return SIK_MOD==="mac"?d.t==="mac":SIK_MOD==="onay"?d.t==="onay":SIK_MOD==="uye"?d.t==="uye":(d.t!=="mac"&&d.t!=="onay"&&d.t!=="uye")});
+    l=l.filter(function(d){return SIK_MOD==="mac"?d.t==="mac":SIK_MOD==="mazeret"?d.t==="mazeret":SIK_MOD==="onay"?d.t==="onay":SIK_MOD==="uye"?d.t==="uye":(d.t!=="mac"&&d.t!=="mazeret"&&d.t!=="onay"&&d.t!=="uye")});
     l.sort(function(a,b){return b.z-a.z});
     if(SIK_MOD==="onay"){
       /* her güreşçinin en son onay kaydı */
@@ -3015,7 +3030,7 @@ async function sikCek(){
     el=document.getElementById(c.list);if(!el)return;
     function bolum(b,a,x){return '<h3>'+b+' ('+a.length+')</h3>'+(a.map(kartA).join("")||'<p class="bos">'+x+'</p>')}
     var not=yok?'':'<div class="adm-note"><b>Yanıt durumu okunamadı.</b> Firebase kurallarında <b>yanit</b> yoluna izin ver (sikayet ile aynı).</div>';
-    if(SIK_MOD==="mac"){
+    if(SIK_MOD==="mac"||SIK_MOD==="mazeret"){
       var bek=l.filter(function(d){return !d.y.length}),yan=l.filter(function(d){return d.y.length});
       el.innerHTML=not+bolum("Yanıt bekleyenler",bek,"Bekleyen talep yok.")+bolum("Yanıtlananlar",yan,"Henüz yanıtlanan yok.");
     }else if(SIK_MOD==="uye"){
@@ -3053,7 +3068,7 @@ document.addEventListener("submit",async function(e){
     if(!d||!d.k)return;
     if(tx.length<2){ms2.textContent="Yanıt çok kısa.";return}
     b2.disabled=true;ms2.textContent="Gönderiliyor…";
-    try{await yanitGonder(d,tx,f.elements.d.value);sikCek()}
+    try{await yanitGonder(d,tx,f.elements.d.value);if(d.t==="mazeret"){var dv=f.elements.d.value;if(dv==="onay")await ertelemeYaz(d,true);else if(dv==="iptal")await ertelemeYaz(d,false)}sikCek()}
     catch(x){ms2.textContent="Gönderilemedi. İnternet ve Firebase kurallarını (yanit) kontrol et.";b2.disabled=false}
     return;
   }
@@ -3138,7 +3153,7 @@ document.addEventListener("click",async function(e){
       var yid=b.getAttribute("data-yanac"),kt=document.getElementById("kart-"+yid),d=SIK_L[yid];
       if(!kt||!d)return;
       var fm=kt.querySelector(".yform");if(fm){fm.remove();return}
-      var sec=d.t==="mac"?[["","Sadece mesaj"],["onay","Onaylandı"],["red","Reddedildi"],["oneri","Başka zaman önerildi"]]:[["","Sadece mesaj"],["bakildi","İncelendi"],["cozuldu","Çözüldü"],["red","Reddedildi"]];
+      var sec=d.t==="mazeret"?[["","Sadece mesaj"],["onay","Onaylandı, maç ertelendi"],["red","Reddedildi"],["oneri","Başka zaman önerildi"],["iptal","Erteleme kaldırıldı"]]:d.t==="mac"?[["","Sadece mesaj"],["onay","Onaylandı"],["red","Reddedildi"],["oneri","Başka zaman önerildi"]]:[["","Sadece mesaj"],["bakildi","İncelendi"],["cozuldu","Çözüldü"],["red","Reddedildi"]];
       kt.insertAdjacentHTML("beforeend",'<form class="yform" data-id="'+esc(yid)+'" autocomplete="off" style="max-width:560px;margin-top:12px"><label>Yanıt<textarea name="m" maxlength="500" rows="3" required></textarea></label><label>Durum<select name="d">'+sec.map(function(s){return '<option value="'+s[0]+'">'+s[1]+'</option>'}).join("")+'</select></label><button class="abtn" type="submit">Yanıtı gönder</button><p class="adm-err" role="alert"></p></form>');
       kt.querySelector(".yform textarea").focus();return;
     }
@@ -3146,6 +3161,107 @@ document.addEventListener("click",async function(e){
     await fbIs("/sikayet/"+b.getAttribute("data-sikdel"),"DELETE");sikCek();
   }catch(x){alert("İşlem yapılamadı. İnternet ve Firebase kurallarını kontrol et.");sikCek()}
 });
+/* ====== MAZERET + ERTELEME ======
+   Maçı olan giriş yapmış güreşçi, yakın maç kartından mazeret bildirir; mazeret şifreli olarak yönetim kutusuna ("Mazeretler") düşer.
+   Yönetim "Onaylandı, maç ertelendi" ile yanıtlarsa maç için yönetim imzalı bir kayıt /ertelen/<maç-kimliği> altına yazılır;
+   herkesin tarayıcısı imzayı doğrulayıp o maçın üstüne "Ertelendi" yazar. Maç kimliği güreşçi adları + maç zamanından türer,
+   maçın tarihi panelden değişince eski kayıt geçersiz olur ve etiket kalkar. */
+async function ertelemeId(a,b,t){
+  var h=new Uint8Array(await crypto.subtle.digest("SHA-256",enc.encode("efc-erteleme:"+a+"|"+b+"|"+t))),id="";
+  for(var i=0;i<16;i++)id+=("0"+h[i].toString(16)).slice(-2);
+  return id;
+}
+async function ertelemeYaz(d,acik){
+  var mid=await ertelemeId(d.g1,d.g2,d.mt),z=Date.now(),v=acik?"1":"0";
+  var sg=await crypto.subtle.sign({name:"ECDSA",hash:"SHA-256"},SOH.imza,enc.encode(JSON.stringify([mid,v,z])));
+  await fb("/ertelen/"+mid,"",{d:v,z:z,s:b64(sg)});
+}
+var ERT={},ERTM=[];
+async function ertelemeYukle(){
+  if(!YAKIN.length)return;
+  if(FB_URL&&window.crypto&&crypto.subtle){
+    try{
+      await Promise.all(YAKIN.map(async function(x,i){ERTM[i]=await ertelemeId(x.a,x.b,x.t)}));
+      var vk=await crypto.subtle.importKey("jwk",DK.pub,{name:"ECDSA",namedCurve:"P-256"},false,["verify"]);
+      await Promise.all(YAKIN.map(async function(x,i){
+        var mid=ERTM[i],son=null;
+        try{
+          var o=await fb("/ertelen/"+mid,"");
+          for(var rid in (o||{})){var r=o[rid];try{
+            if(r&&(r.d==="1"||r.d==="0")&&await crypto.subtle.verify({name:"ECDSA",hash:"SHA-256"},vk,ub64(r.s),enc.encode(JSON.stringify([mid,r.d,r.z])))){if(!son||r.z>son.z)son=r}
+          }catch(e){}}
+          ERT[mid]=!!(son&&son.d==="1");
+        }catch(e){}
+      }));
+    }catch(e){}
+  }
+  mazeretCiz();
+}
+async function mazeretDurum(kutu,mid){
+  var d=kutu.querySelector(".mzr-d");if(!d)return;
+  var l=tpOku().filter(function(q){return q.t==="mazeret"&&q.mid===mid});
+  if(!l.length){d.innerHTML="";return}
+  var yn=l.map(function(){return null});
+  function ciz(){d.innerHTML=l.map(function(q,i){return '<div class="dy"><small>'+(q.z?tz(q.z)+' · ':'')+'Takip kodu: '+kodGoster(q.k)+'</small><div>'+durumChip(yn[i],"Yanıt bekleniyor")+'</div><p>'+esc(q.o)+'</p>'+yanHtml(yn[i])+'</div>'}).join("")}
+  ciz();
+  if(!FB_URL||!window.crypto||!crypto.subtle)return;
+  await Promise.all(l.map(function(q,i){return yanitOku(q.k).then(function(r){yn[i]=r},function(){})}));
+  if(kutu.isConnected)ciz();
+}
+function mazeretCiz(){
+  var now=Date.now();
+  document.querySelectorAll("#yakinList li.home-match").forEach(function(li,i){
+    var x=YAKIN[i];if(!x)return;
+    var mid=ERTM[i],ert=!!(mid&&ERT[mid]),top=li.querySelector(".hm-top"),ch=li.querySelector(".ert-chip");
+    li.classList.toggle("ert",ert);
+    if(ert&&!ch&&top)top.insertAdjacentHTML("beforeend",'<span class="ert-chip">Ertelendi</span>');
+    if(!ert&&ch)ch.remove();
+    var benim=!!(OTURUM&&OTURUM.ad&&(OTURUM.ad===x.a||OTURUM.ad===x.b)&&mid&&Date.parse(x.t)>now);
+    var kutu=li.querySelector(".mzr");
+    if(benim&&!kutu){
+      li.insertAdjacentHTML("beforeend",'<div class="mzr" data-i="'+i+'"><button class="abtn alt mzr-b" type="button">Mazeret bildir</button><div class="mzr-d"></div></div>');
+      kutu=li.querySelector(".mzr");
+    }
+    if(kutu&&!benim){kutu.remove();kutu=null}
+    if(kutu){var bb=kutu.querySelector(".mzr-b");if(bb)bb.style.display=ert?"none":"";mazeretDurum(kutu,mid)}
+  });
+  document.querySelectorAll("#afisMain .poster-fight").forEach(function(a,i){
+    var mid=ERTM[i],ert=!!(mid&&ERT[mid]),c=a.querySelector(".poster-ert");
+    a.classList.toggle("ert",ert);
+    if(ert&&!c)a.insertAdjacentHTML("beforeend",'<div class="poster-ert">Ertelendi</div>');
+    if(!ert&&c)c.remove();
+  });
+}
+document.addEventListener("click",function(e){
+  var b=e.target.closest&&e.target.closest(".mzr-b");if(!b)return;
+  var k=b.closest(".mzr"),f=k.querySelector("form");
+  if(f){f.remove();return}
+  b.insertAdjacentHTML("afterend",'<form class="mzr-f" autocomplete="off"><label>Mazeretin nedir?<textarea name="m" maxlength="400" rows="3" required placeholder="Maça çıkamama nedenini yaz. Yönetim inceleyecek."></textarea></label><button class="abtn" type="submit">Yönetime gönder</button><p class="adm-err" role="alert"></p></form>');
+  k.querySelector("textarea").focus();
+});
+document.addEventListener("submit",async function(e){
+  var f=e.target;if(!f.classList||!f.classList.contains("mzr-f"))return;
+  e.preventDefault();
+  var k=f.closest(".mzr"),i=+k.getAttribute("data-i"),x=YAKIN[i],mid=ERTM[i],em=f.querySelector(".adm-err"),bt=f.querySelector("button"),tx=f.elements.m.value.trim();
+  if(!OTURUM||!x||!(OTURUM.ad===x.a||OTURUM.ad===x.b)){em.textContent="Sadece maçı olan güreşçi mazeret bildirebilir.";return}
+  if(tx.length<5){em.textContent="Mazeretini biraz daha açık yaz.";return}
+  var son=0;try{son=+localStorage.getItem("efcMazeretSon")||0}catch(x2){}
+  if(Date.now()-son<60000){em.textContent="Çok sık gönderiyorsun. Bir dakika sonra tekrar dene.";return}
+  if(!FB_URL||!window.crypto||!crypto.subtle){em.textContent="Şu an gönderilemiyor.";return}
+  bt.disabled=true;em.style.color="";em.textContent="Gönderiliyor…";
+  try{
+    var kod=await sikGonder(OTURUM.ad,tx,"mazeret",{g1:x.a,g2:x.b,mt:x.t});
+    try{localStorage.setItem("efcMazeretSon",Date.now())}catch(x2){}
+    tpEkle({k:kod,t:"mazeret",o:"Mazeret: "+tx,z:Date.now(),mid:mid});
+    f.remove();mazeretCiz();
+  }catch(err){
+    em.textContent=err&&err.message==="anahtar yok"?"Talep kutusu henüz açılmadı. Yönetim açınca çalışacak.":"Gönderilemedi. Biraz sonra tekrar dene.";
+    bt.disabled=false;
+  }
+});
+setTimeout(ertelemeYukle,1200);setTimeout(mazeretCiz,3500);
+setInterval(function(){if(!document.hidden)ertelemeYukle()},60000);
+
 setInterval(function(){
   if(document.hidden)return;
   if(location.hash==="#mactalebi")tpCiz("macTaleplerim",["mac"]);
@@ -3387,7 +3503,7 @@ document.addEventListener("submit",async function(e){
   sc.addEventListener("click",function(e){e.preventDefault();set(false)});
   document.addEventListener("keydown",function(e){if(e.key==="Escape")set(false)});
   set(false);
-  var pages=["anaekran","maclar","afiskart","gecmis","puan","tahmin","guresciler","guresci","hafif","orta","agir","hakemler","antrenorler","yonetim","yonetici","oduller","hakkinda","duyurular","sohbet","istek","sikayetler","mactalebi","mactalepleri","uyetalepleri","onaylar","anketsonuc"];
+  var pages=["anaekran","maclar","afiskart","gecmis","puan","tahmin","guresciler","guresci","hafif","orta","agir","hakemler","antrenorler","yonetim","yonetici","oduller","hakkinda","duyurular","sohbet","istek","sikayetler","mactalebi","mactalepleri","mazeretler","uyetalepleri","onaylar","anketsonuc"];
   var simdi=null,Y={};   /* simdi: açık sayfa, Y: sayfalardaki kaydırma konumu */
   function show(p){
     var raw=p,cur=p,pw=null,profilden=simdi!==null&&simdi.indexOf("guresci/")===0;
@@ -3404,6 +3520,7 @@ document.addEventListener("submit",async function(e){
     if(p==="sikayetler")sikCiz("sik");
     if(p==="uyetalepleri")sikCiz("uye");
     if(p==="mactalepleri")sikCiz("mac");
+    if(p==="mazeretler")sikCiz("mazeret");
     if(p==="onaylar")sikCiz("onay");
     if(p==="anketsonuc")sikCiz("anket");
     if(p==="mactalebi"){macFormDoldur();adKilitle();tpCiz("macTaleplerim",["mac"])}
