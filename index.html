@@ -2821,7 +2821,7 @@ document.addEventListener("submit",async function(e){
       if(!confirm("Bu duyuru HERKESE görünecek. Yayınlansın mı?"))return;
       var z=Date.now(),y=kim();
       var s=await crypto.subtle.sign({name:"ECDSA",hash:"SHA-256"},SOH.imza,enc.encode(JSON.stringify([m,z,y])));
-      await fb("/duyuru","",{m:m,z:z,y:y,s:b64(s)});a.value="";alert("Duyuru yayınlandı.");duyuruCek();
+      await fb("/duyuru","",{m:m,z:z,y:y,s:b64(s)});a.value="";var pm=await pushGonder(z);alert("Duyuru yayınlandı. "+pm);duyuruCek();
     }
   }catch(x){alert("Gönderilemedi. İnternet ve Firebase ayarlarını kontrol et.")}
 });
@@ -3334,6 +3334,38 @@ async function bildirimGonder(baslik,metin,etiket){
 }
 function bnGet(k){try{return localStorage.getItem("efcBn:"+k)}catch(e){return null}}
 function bnSet(k,v){try{localStorage.setItem("efcBn:"+k,v===undefined?"1":String(v))}catch(e){}}
+var PUSH_URL="https://efc-bildirim.tuncyusuftugra.workers.dev";   /* Cloudflare Worker adresi (kurulumdan sonra buraya yazılır, örn. https://efc-bildirim.xxx.workers.dev) */
+var VAPID_PUB="BLbvkvvnNIeH8vdRONNJYvAMr66lVk-LYIi7FYmbA2sw2NXkvWm-jOgQZndX2UGYL4v01-zj2G_MMW4vLst5g7Q";
+function ub64url(t){t=t.replace(/-/g,"+").replace(/_/g,"/");while(t.length%4)t+="=";return ub64(t)}
+async function pushAboneOl(){
+  if(!PUSH_URL||!("PushManager" in window))return;
+  try{
+    var reg=await navigator.serviceWorker.ready,sub=await reg.pushManager.getSubscription();
+    if(!sub)sub=await reg.pushManager.subscribe({userVisibleOnly:true,applicationServerKey:ub64url(VAPID_PUB)});
+    await fetch(PUSH_URL+"/abone",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({endpoint:sub.endpoint})});
+    bnSet("abone-z",Date.now());
+  }catch(e){}
+}
+async function pushAboneCik(){
+  if(!PUSH_URL||!("PushManager" in window))return;
+  try{
+    var reg=await navigator.serviceWorker.ready,sub=await reg.pushManager.getSubscription();
+    if(sub){await fetch(PUSH_URL+"/cik",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({endpoint:sub.endpoint})});await sub.unsubscribe()}
+  }catch(e){}
+}
+/* Yönetici duyuru yayınlayınca: imzalı istekle bildirim sunucusuna haber verir; sunucu kayıtlı cihazlara push yollar. */
+async function pushGonder(z){
+  if(!PUSH_URL||!SOH)return "";
+  try{
+    var sg=b64(await crypto.subtle.sign({name:"ECDSA",hash:"SHA-256"},SOH.imza,enc.encode(JSON.stringify(["push-duyuru",z])))),from=0,gid=0;
+    for(var i=0;i<40;i++){
+      var r=await fetch(PUSH_URL+"/gonder",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({z:z,s:sg,from:from})});
+      if(!r.ok)throw new Error(r.status);
+      var j=await r.json();gid+=j.gonderilen;from=j.sonraki;if(!j.toplam||from>=j.toplam)break;
+    }
+    return gid+" cihaza bildirim gönderildi.";
+  }catch(e){return "Bildirim gönderilemedi (duyuru yine de yayınlandı)."}
+}
 var BN_YANIT_Z=0;
 /* Yeni duyuru: bildirim açıksa ve site arka plandaysa telefona bildirim gider (site açıkken zaten üstte banner çıkar). İlk bakışta eski duyurular bildirilmez. */
 function duyuruBildir(l){
@@ -3385,11 +3417,12 @@ async function bildirimKontrol(){
 }
 async function bildirimDegistir(){
   if(!("Notification" in window)||!("serviceWorker" in navigator)){alert("Bu tarayıcı bildirimleri desteklemiyor. iPhone'da önce siteyi \"Ana Ekrana ekle\" ile kurman gerekir.");return}
-  if(bildirimAcik()){try{localStorage.setItem("efcBildirim","0")}catch(e){}bildirimEtiket();alert("Bildirimler kapatıldı.");return}
+  if(bildirimAcik()){await pushAboneCik();try{localStorage.setItem("efcBildirim","0")}catch(e){}bildirimEtiket();alert("Bildirimler kapatıldı.");return}
   var p=Notification.permission;if(p==="default")p=await Notification.requestPermission();
   if(p!=="granted"){alert("Bildirim izni verilmedi. Tarayıcı ayarlarından bu site için bildirimi açabilirsin.");return}
   try{localStorage.setItem("efcBildirim","1")}catch(e){}
   bildirimEtiket();
+  await pushAboneOl();
   if(DUY&&DUY[0])bnSet("duy",DUY[0].z);
   bildirimGonder("Bildirimler açık","Maçına yaklaşırken, duyuru yayınlanınca ve yönetimden yanıt gelince haber vereceğim.","efc-acik");
   BN_YANIT_Z=0;bildirimKontrol();
@@ -3398,6 +3431,7 @@ setTimeout(function(){
   var bl=document.getElementById("bildirimLink");
   if(bl&&OTURUM){bl.style.display="block";bildirimEtiket();bl.addEventListener("click",function(e){e.preventDefault();e.stopPropagation();bildirimDegistir()})}
 },1500);
+setTimeout(function(){if(bildirimAcik()&&Date.now()-(+bnGet("abone-z")||0)>86400000)pushAboneOl()},4000);
 setTimeout(bildirimKontrol,6000);
 setInterval(function(){if(!document.hidden)bildirimKontrol()},60000);
 document.addEventListener("visibilitychange",function(){if(!document.hidden)bildirimKontrol()});
