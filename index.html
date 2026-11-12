@@ -2702,7 +2702,7 @@ async function duyuruCek(){
     for(var id in (o||{})){var x=o[id];try{
       if(await crypto.subtle.verify({name:"ECDSA",hash:"SHA-256"},k,ub64(x.s),enc.encode(JSON.stringify([x.m,x.z,x.y]))))l.push({id:id,m:x.m,z:x.z,y:x.y});
     }catch(e){}}
-    l.sort(function(a,b){return b.z-a.z});DUY=l;duyuruCiz();
+    l.sort(function(a,b){return b.z-a.z});DUY=l;duyuruCiz();duyuruBildir(l);
   }catch(e){}
 }
 function gorulen(){try{return +localStorage.getItem("efcGorulen")||0}catch(e){return 0}}
@@ -3335,6 +3335,18 @@ async function bildirimGonder(baslik,metin,etiket){
 function bnGet(k){try{return localStorage.getItem("efcBn:"+k)}catch(e){return null}}
 function bnSet(k,v){try{localStorage.setItem("efcBn:"+k,v===undefined?"1":String(v))}catch(e){}}
 var BN_YANIT_Z=0;
+/* Yeni duyuru: bildirim açıksa ve site arka plandaysa telefona bildirim gider (site açıkken zaten üstte banner çıkar). İlk bakışta eski duyurular bildirilmez. */
+function duyuruBildir(l){
+  if(!bildirimAcik()||!l||!l.length)return;
+  var son=+bnGet("duy"),enYeni=l[0].z;
+  if(!son){bnSet("duy",enYeni);return}
+  var yeni=l.filter(function(d){return d.z>son}).sort(function(a,b){return a.z-b.z});
+  if(!yeni.length)return;
+  bnSet("duy",enYeni);
+  if(!document.hidden)return;
+  if(yeni.length>3){bildirimGonder("📢 "+yeni.length+" yeni duyuru","Duyurular sayfasından okuyabilirsin.","duy-toplu");return}
+  yeni.forEach(function(d){bildirimGonder("📢 Yeni duyuru",d.m.length>140?d.m.slice(0,137)+"…":d.m,"duy-"+d.id)});
+}
 async function bildirimKontrol(){
   if(!bildirimAcik()||!OTURUM||!OTURUM.ad)return;
   var now=Date.now();
@@ -3378,7 +3390,8 @@ async function bildirimDegistir(){
   if(p!=="granted"){alert("Bildirim izni verilmedi. Tarayıcı ayarlarından bu site için bildirimi açabilirsin.");return}
   try{localStorage.setItem("efcBildirim","1")}catch(e){}
   bildirimEtiket();
-  bildirimGonder("Bildirimler açık","Maçına yaklaşırken ve yönetimden yanıt gelince haber vereceğim.","efc-acik");
+  if(DUY&&DUY[0])bnSet("duy",DUY[0].z);
+  bildirimGonder("Bildirimler açık","Maçına yaklaşırken, duyuru yayınlanınca ve yönetimden yanıt gelince haber vereceğim.","efc-acik");
   BN_YANIT_Z=0;bildirimKontrol();
 }
 setTimeout(function(){
