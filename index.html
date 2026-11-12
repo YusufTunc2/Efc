@@ -801,6 +801,7 @@ kilitUygula();window.addEventListener("hashchange",kilitUygula);
     <a class="item" id="sikLink" href="#sikayetler" style="display:none"><span class="nav-ico">☏</span><span>Gelen istek / şikayet</span></a>
     <a class="item" id="uyeTalepLink" href="#uyetalepleri" style="display:none"><span class="nav-ico">♙</span><span>Üyelik talepleri</span></a>
     <a class="item" id="cikisLink" href="#anaekran" style="display:none"><span class="nav-ico">↪</span><span>Çıkış yap</span></a>
+    <a class="item" id="bildirimLink" href="#anaekran" style="display:none"><span class="nav-ico">🔔</span><span>Bildirimleri aç</span></a>
     <a class="item" id="tumCikisLink" href="#anaekran" style="display:none"><span class="nav-ico">⏻</span><span>Tüm cihazlardan çık</span></a>
   </div>
   <div class="drawer-foot">EFC <span>•</span> GÜREŞ TOPLULUĞU</div>
@@ -1586,7 +1587,7 @@ function macListe(prefix,dizi,gecmis){
   ["hafif","orta","agir"].forEach(function(k){
     var l=dizi.filter(function(x){return x.s===k});
     document.getElementById(prefix+k.charAt(0).toUpperCase()+k.slice(1)).innerHTML=l.length?l.map(function(x){
-      var durum=gecmis?'<span class="match-status"><small>'+(x.y==="hakem"?"Hakem kararı":"Submission")+'</small><b>🏆 '+esc(x.k||"Kazanan belirtilmedi")+'</b></span>':'<span class="match-status"><small>Karşılaşma</small><b>Tarih bekleniyor</b></span>';
+      var durum=gecmis?'<span class="match-status"><small>'+(x.y==="hakem"?"Hakem kararı":"Submission")+'</small><b>🏆 '+esc(x.k||"Kazanan belirtilmedi")+'</b>'+(gecmis&&x.k?'<button class="abtn alt sonuc-b" type="button" data-gi="'+GECMIS.indexOf(x)+'" style="margin-top:8px;padding:8px 12px;font-size:16px;min-height:36px">Görsel oluştur</button>':'')+'</span>':'<span class="match-status"><small>Karşılaşma</small><b>Tarih bekleniyor</b></span>';
       return '<li class="match-row '+(gecmis?'is-past':'is-upcoming')+'"><span class="match-weight">'+ETIKET[x.s]+'</span><div class="match-main">'+(gecmis?gecmisCift(x):cift(x,false))+'</div>'+durum+'</li>';
     }).join(""):'<li class="bos">Maç yok.</li>';
   });
@@ -3259,6 +3260,135 @@ document.addEventListener("submit",async function(e){
     bt.disabled=false;
   }
 });
+/* ====== MAÇ SONUCU GÖRSELİ ======
+   Geçmiş maç satırındaki "Görsel oluştur" butonu 1080x1350 bir sonuç görseli çizer; telefonda paylaşma menüsünü açar, olmazsa indirir. */
+function resimYukle(src){return new Promise(function(ok){var i=new Image();i.onload=function(){ok(i)};i.onerror=function(){ok(null)};i.src=src})}
+async function fotoBul(ad){
+  var k=slug(ad),u=FOTO[k]?[FOTO[k]]:["jpg","png","jpeg","webp"].map(function(e){return "fotolar/"+k+"."+e});
+  for(var i=0;i<u.length;i++){var r=await resimYukle(u[i]);if(r)return r}
+  return null;
+}
+function yuvarlakFoto(g,img,ad,cx,cy,r,halka,renk){
+  g.save();g.beginPath();g.arc(cx,cy,r,0,Math.PI*2);g.closePath();g.fillStyle="#1a1a1f";g.fill();g.clip();
+  if(img){var k=Math.max(2*r/img.width,2*r/img.height),w=img.width*k,h=img.height*k;g.drawImage(img,cx-w/2,cy-r+(2*r-h)/3,w,h)}
+  else{g.fillStyle="rgba(255,255,255,.28)";g.font="900 "+Math.round(r*1.1)+"px "+g.fam;g.textAlign="center";g.textBaseline="middle";g.fillText(ad.charAt(0).toLocaleUpperCase("tr"),cx,cy+r*.06)}
+  g.restore();
+  g.beginPath();g.arc(cx,cy,r+halka/2,0,Math.PI*2);g.lineWidth=halka;g.strokeStyle=renk;g.stroke();
+}
+function metinSigdir(g,t,px,max,agirlik){var s=px;do{g.font=agirlik+" "+s+"px "+g.fam;if(g.measureText(t).width<=max)break;s-=4}while(s>40);return s}
+async function sonucGorsel(gi){
+  var x=GECMIS[gi];if(!x||!x.k)return null;
+  var kaz=x.k,kay=x.k===x.a?x.b:x.a;
+  try{await document.fonts.ready}catch(e){}
+  var cs=getComputedStyle(document.documentElement),fam=cs.getPropertyValue("--display").trim()||"Impact,sans-serif",kirmizi="#e50209";
+  var lm=/url\("?([^")]+)"?\)/.exec(cs.getPropertyValue("--logo")||"");
+  var yk=await Promise.all([lm?resimYukle(lm[1]):null,fotoBul(kaz),fotoBul(kay)]),lg=yk[0],f1=yk[1],f2=yk[2];
+  var W=1080,H=1350,c=document.createElement("canvas");c.width=W;c.height=H;
+  var g=c.getContext("2d");g.fam=fam;
+  g.fillStyle="#0b0b0d";g.fillRect(0,0,W,H);
+  var rg=g.createRadialGradient(W/2,430,60,W/2,430,900);rg.addColorStop(0,"#3a0a10");rg.addColorStop(1,"#0b0b0d");g.fillStyle=rg;g.fillRect(0,0,W,H);
+  [[0,1],[110,.45],[190,.2]].forEach(function(o){g.fillStyle="rgba(229,2,9,"+o[1]+")";g.beginPath();g.moveTo(W-250+o[0],0);g.lineTo(W-130+o[0],0);g.lineTo(W-420+o[0],H);g.lineTo(W-540+o[0],H);g.closePath();g.fill()});
+  if(lg){var lw=300;g.drawImage(lg,70,70,lw,lw*lg.height/lg.width)}
+  g.textBaseline="alphabetic";g.textAlign="right";g.fillStyle="#f5f5f5";g.font="900 44px "+fam;g.fillText("MAÇ SONUCU",W-70,120);
+  var SK={hafif:"HAFİF SİKLET",orta:"ORTA SİKLET",agir:"AĞIR SİKLET"};
+  g.fillStyle="#a3a3ad";g.font="700 34px "+fam;g.fillText(SK[x.s]||"",W-70,168);
+  yuvarlakFoto(g,f1,kaz,W/2,500,230,14,kirmizi);
+  g.textBaseline="alphabetic";g.textAlign="center";g.fillStyle=kirmizi;g.font="900 44px "+fam;g.fillText("KAZANAN",W/2,820);
+  var ad=kaz.toLocaleUpperCase("tr");g.fillStyle="#f5f5f5";metinSigdir(g,ad,170,W-160,900);g.fillText(ad,W/2,965);
+  g.fillStyle="#a3a3ad";g.font="700 40px "+fam;g.fillText(x.y==="hakem"?"HAKEM KARARI":"SUBMISSION",W/2,1030);
+  g.fillStyle="rgba(255,255,255,.14)";g.fillRect(70,1085,W-140,2);
+  yuvarlakFoto(g,f2,kay,150,1190,62,6,"rgba(255,255,255,.25)");
+  g.textBaseline="alphabetic";g.textAlign="left";g.fillStyle="#a3a3ad";g.font="700 30px "+fam;g.fillText("RAKİP",250,1170);
+  var ra=kay.toLocaleUpperCase("tr");g.fillStyle="#d8d8de";metinSigdir(g,ra,70,W-320,900);g.fillText(ra,250,1232);
+  g.fillStyle=kirmizi;g.fillRect(0,H-22,W,22);
+  g.textAlign="center";g.fillStyle="rgba(255,255,255,.4)";g.font="700 28px "+fam;g.fillText(location.hostname||"EFC",W/2,H-48);
+  return new Promise(function(ok){c.toBlob(function(b){ok({blob:b,ad:"efc-sonuc-"+slug(kaz)+".png"})},"image/png")});
+}
+document.addEventListener("click",async function(e){
+  var b=e.target.closest&&e.target.closest(".sonuc-b");if(!b)return;
+  var yazi=b.textContent;b.disabled=true;b.textContent="Hazırlanıyor…";
+  try{
+    var r=await sonucGorsel(+b.getAttribute("data-gi"));if(!r||!r.blob)throw new Error("görsel");
+    var f=new File([r.blob],r.ad,{type:"image/png"});
+    if(navigator.canShare&&navigator.canShare({files:[f]})){
+      try{await navigator.share({files:[f],title:"EFC maç sonucu"})}
+      catch(er){if(er&&er.name!=="AbortError")throw er}
+    }else{
+      var a=document.createElement("a");a.href=URL.createObjectURL(r.blob);a.download=r.ad;document.body.appendChild(a);a.click();a.remove();
+      setTimeout(function(){URL.revokeObjectURL(a.href)},4000);
+    }
+  }catch(er){
+    try{var r2=await sonucGorsel(+b.getAttribute("data-gi"));var a2=document.createElement("a");a2.href=URL.createObjectURL(r2.blob);a2.download=r2.ad;document.body.appendChild(a2);a2.click();a2.remove()}catch(x2){alert("Görsel oluşturulamadı.")}
+  }
+  b.disabled=false;b.textContent=yazi;
+});
+
+/* ====== BİLDİRİMLER ======
+   Site (ya da Ana Ekrana eklenmiş uygulama) açıkken/arka plandayken çalışır: giriş yapmış güreşçiye maçından 1 saat ve 10 dk önce,
+   maç ertelenince ve taleplerine yanıt gelince bildirim gösterilir. Site tamamen kapalıyken bildirim için sunucu gerekir. */
+function bildirimAcik(){try{return "Notification" in window&&Notification.permission==="granted"&&localStorage.getItem("efcBildirim")==="1"}catch(e){return false}}
+function bildirimEtiket(){var l=document.getElementById("bildirimLink");if(!l)return;var sp=l.querySelectorAll("span");sp[sp.length-1].textContent=bildirimAcik()?"Bildirimler: açık":"Bildirimleri aç"}
+async function bildirimGonder(baslik,metin,etiket){
+  try{var r=await navigator.serviceWorker.ready;await r.showNotification(baslik,{body:metin,tag:etiket,icon:"icon.svg",badge:"icon.svg",data:{url:"./"}})}
+  catch(e){try{new Notification(baslik,{body:metin,tag:etiket})}catch(x){}}
+}
+function bnGet(k){try{return localStorage.getItem("efcBn:"+k)}catch(e){return null}}
+function bnSet(k,v){try{localStorage.setItem("efcBn:"+k,v===undefined?"1":String(v))}catch(e){}}
+var BN_YANIT_Z=0;
+async function bildirimKontrol(){
+  if(!bildirimAcik()||!OTURUM||!OTURUM.ad)return;
+  var now=Date.now();
+  YAKIN.forEach(function(x,i){
+    if(x.a!==OTURUM.ad&&x.b!==OTURUM.ad)return;
+    var mid=ERTM[i];if(!mid)return;
+    var rakip=x.a===OTURUM.ad?x.b:x.a,kal=Date.parse(x.t)-now;
+    if(ERT[mid]){
+      if(!bnGet(mid+":ert")){bnSet(mid+":ert");bildirimGonder("Maçın ertelendi",x.a+" - "+x.b+" maçı ertelendi. Yeni zamanı yönetim bildirecek.","ert-"+mid)}
+      return;
+    }
+    if(kal>0&&kal<=3600000){
+      var on=kal<=600000,anahtar=mid+(on?":10":":60");
+      if(!bnGet(anahtar)){
+        bnSet(anahtar);if(on)bnSet(mid+":60");
+        var dk=Math.max(1,Math.round(kal/60000));
+        bildirimGonder("⏰ Maçına "+(dk>=60?"1 saat":dk+" dk")+" kaldı",OTURUM.ad+" - "+rakip+" · "+x.d,"mac-"+mid);
+      }
+    }
+  });
+  if(!FB_URL||!window.crypto||!crypto.subtle||now-BN_YANIT_Z<300000)return;
+  BN_YANIT_Z=now;
+  var l=tpOku();
+  for(var i=0;i<l.length;i++){
+    var q=l[i];if(!q.k)continue;
+    try{
+      var y=await yanitOku(q.k),n=(y||[]).length,a="yn:"+q.k,o=bnGet(a);
+      if(o===null){bnSet(a,n)}
+      else if(n>(+o||0)){
+        bnSet(a,n);
+        var son=y[y.length-1],dur=son&&son.d&&DURUM[son.d]?DURUM[son.d][0]:"";
+        bildirimGonder(q.t==="mazeret"?"Mazeretine yanıt geldi":q.t==="mac"?"Maç talebine yanıt geldi":"Talebine yanıt geldi",dur?("Durum: "+dur):"Yönetim yanıt yazdı. Görmek için dokun.","yn-"+q.k);
+      }
+    }catch(e){}
+  }
+}
+async function bildirimDegistir(){
+  if(!("Notification" in window)||!("serviceWorker" in navigator)){alert("Bu tarayıcı bildirimleri desteklemiyor. iPhone'da önce siteyi \"Ana Ekrana ekle\" ile kurman gerekir.");return}
+  if(bildirimAcik()){try{localStorage.setItem("efcBildirim","0")}catch(e){}bildirimEtiket();alert("Bildirimler kapatıldı.");return}
+  var p=Notification.permission;if(p==="default")p=await Notification.requestPermission();
+  if(p!=="granted"){alert("Bildirim izni verilmedi. Tarayıcı ayarlarından bu site için bildirimi açabilirsin.");return}
+  try{localStorage.setItem("efcBildirim","1")}catch(e){}
+  bildirimEtiket();
+  bildirimGonder("Bildirimler açık","Maçına yaklaşırken ve yönetimden yanıt gelince haber vereceğim.","efc-acik");
+  BN_YANIT_Z=0;bildirimKontrol();
+}
+setTimeout(function(){
+  var bl=document.getElementById("bildirimLink");
+  if(bl&&OTURUM){bl.style.display="block";bildirimEtiket();bl.addEventListener("click",function(e){e.preventDefault();e.stopPropagation();bildirimDegistir()})}
+},1500);
+setTimeout(bildirimKontrol,6000);
+setInterval(function(){if(!document.hidden)bildirimKontrol()},60000);
+document.addEventListener("visibilitychange",function(){if(!document.hidden)bildirimKontrol()});
+
 setTimeout(ertelemeYukle,1200);setTimeout(mazeretCiz,3500);
 setInterval(function(){if(!document.hidden)ertelemeYukle()},60000);
 
