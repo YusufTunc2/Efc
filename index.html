@@ -135,6 +135,42 @@ footer .wrap{display:flex;justify-content:space-between;flex-wrap:wrap;gap:10px}
 .home-match .count b{font-size:27px}
 .home-match .f2f{margin-top:0;border-radius:6px}
 .home-match .hk{margin-top:0}
+.ozel-bant{margin:0 0 22px;padding:14px 16px;border-radius:10px;background:linear-gradient(90deg,var(--gold),#8a0107);color:#fff;font:600 16px/1.4 var(--body)}
+.ozel-bant b{display:block;font:800 22px/1.1 var(--display);text-transform:uppercase;letter-spacing:.04em;margin-bottom:2px}
+.ozel-bant.yas{background:linear-gradient(90deg,#1a1a1d,#2a0a0e);border:1px solid #4a1a20}
+.ozel-bant.mac{margin-top:0;animation:macNabiz 2.4s ease-in-out infinite}
+@keyframes macNabiz{0%,100%{box-shadow:0 0 0 0 rgba(229,2,9,.55)}50%{box-shadow:0 0 0 10px rgba(229,2,9,0)}}
+html.ozel-yas main,html.ozel-yas header{filter:grayscale(.9)}
+.sirada{margin:0 0 26px;padding:22px;text-align:center;border:1px solid #34343c;border-radius:12px;background:radial-gradient(120% 120% at 50% 0,rgba(229,2,9,.28),rgba(22,22,26,.97) 62%)}
+.sirada .sir-et{display:inline-block;font:800 13px/1 var(--body);letter-spacing:.14em;text-transform:uppercase;color:#fff;background:var(--gold);padding:7px 11px;border-radius:4px}
+.sir-pair{display:flex;align-items:center;justify-content:center;gap:clamp(12px,4vw,34px);margin:20px 0 14px}
+.sir-pair .av{width:clamp(104px,27vw,180px)}
+.sir-pair i{font:900 clamp(26px,6vw,44px)/1 var(--display);color:var(--gold);font-style:normal}
+.sir-ad{font:800 clamp(24px,5.5vw,38px)/1.1 var(--display);text-transform:uppercase}
+.sir-ad em{color:var(--muted);font-style:normal;font-size:.6em;margin:0 6px}
+.sirada .tarih{color:var(--muted);margin:8px 0 10px}
+.ana-alt{display:grid;gap:18px;margin-top:30px}
+.ana-kutu{border:1px solid var(--line);border-radius:10px;background:var(--surface);padding:16px 18px}
+.ana-kutu h3{margin:0 0 10px;font:800 20px/1 var(--display);text-transform:uppercase;letter-spacing:.04em}
+.ana-kutu p{margin:0 0 6px;line-height:1.45}.ana-kutu small{color:var(--muted)}
+.ana-kutu a.sn{display:flex;justify-content:space-between;gap:10px;padding:9px 0;border-top:1px solid var(--line);color:inherit;text-decoration:none}
+.ana-kutu a.sn:first-of-type{border-top:0}.ana-kutu a.sn b{color:#f2c94c}
+.ara-ov,.tn-ov{position:fixed;inset:0;z-index:30;background:rgba(0,0,0,.72);display:flex;justify-content:center;align-items:flex-start;padding:calc(env(safe-area-inset-top,0px) + 14px) 14px 14px}
+.ara-ov[hidden],.tn-ov[hidden]{display:none}
+.ara-box{width:100%;max-width:620px;background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:14px;max-height:calc(100vh - 40px);overflow:auto}
+.ara-box input{width:100%;box-sizing:border-box;padding:14px;font:600 18px var(--body);color:inherit;background:var(--base);border:1px solid var(--line);border-radius:8px}
+.ara-g{margin:14px 0 4px;font:800 14px var(--body);letter-spacing:.12em;text-transform:uppercase;color:var(--muted)}
+.ara-box a.ar{display:block;padding:11px 8px;border-top:1px solid var(--line);color:inherit;text-decoration:none;line-height:1.35}
+.ara-box a.ar small{display:block;color:var(--muted)}
+.ara-bos{color:var(--muted);padding:16px 4px}
+.tn-ov{align-items:center}
+.tn-box{width:100%;max-width:440px;background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:26px 22px;text-align:center}
+.tn-ik{font-size:54px;line-height:1;margin-bottom:12px}
+.tn-box h2{margin:0 0 8px;font:800 30px/1.1 var(--display);text-transform:uppercase}
+.tn-box p{margin:0 0 18px;color:var(--muted);line-height:1.5}
+.tn-nok{display:flex;justify-content:center;gap:8px;margin-bottom:18px}.tn-nok i{width:9px;height:9px;border-radius:50%;background:var(--line)}.tn-nok i.on{background:var(--gold)}
+.tn-alt{display:flex;gap:10px;justify-content:space-between;align-items:center}
+.tn-atla{background:none;border:0;color:var(--muted);font:600 16px var(--body);cursor:pointer;padding:10px}
 .home-match.ert{border-left-color:#f2c94c}
 .home-match.ert .zaman .count,.home-match.ert .f2f{display:none}
 .home-match.ert .tarih{text-decoration:line-through;opacity:.6}
@@ -744,6 +780,7 @@ kilitUygula();window.addEventListener("hashchange",kilitUygula);
   <div class="wrap">
     <button class="menu-btn" id="menuBtn" aria-label="Menüyü aç" aria-expanded="false" aria-controls="drawer"><i></i><i></i><i></i></button>
     <a class="logo" href="#anaekran" aria-label="EFC ana sayfa"></a>
+    <button class="bell" id="araBtn" type="button" aria-label="Ara"><svg viewBox="0 0 24 24" width="24" height="24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="M20 20l-4-4"/></svg></button>
     <button class="bell" id="bildBtn" type="button" aria-label="Bildirimler"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 22a2.5 2.5 0 0 0 2.5-2.5h-5A2.5 2.5 0 0 0 12 22zm7-6v-5c0-3.1-1.6-5.6-4.5-6.3V4a2.5 2.5 0 0 0-5 0v.7C6.6 5.4 5 7.9 5 11v5l-2 2v1h18v-1z"/></svg><b id="bildSay" hidden></b></button>
   </div>
   <div class="muzik" id="muzik" role="region" aria-label="Müzik çalar">
@@ -807,13 +844,19 @@ kilitUygula();window.addEventListener("hashchange",kilitUygula);
   <div class="drawer-foot">EFC <span>•</span> GÜREŞ TOPLULUĞU</div>
 </aside>
 
+<div class="ara-ov" id="araOv" hidden role="dialog" aria-modal="true" aria-label="Ara"><div class="ara-box"><input id="araIn" type="search" placeholder="Güreşçi, maç, duyuru ya da sayfa ara…" autocomplete="off" aria-label="Ara"><div id="araSon"></div></div></div>
+<div class="tn-ov" id="tanitim" hidden role="dialog" aria-modal="true" aria-label="Tanıtım"><div class="tn-box"><div class="tn-ik" id="tnIk"></div><h2 id="tnBas"></h2><p id="tnMet"></p><div class="tn-nok" id="tnNok"></div><div class="tn-alt"><button class="tn-atla" id="tnAtla" type="button">Atla</button><button class="abtn" id="tnIleri" type="button">İleri</button></div></div></div>
+
 <main id="top">
   <section class="hero" data-page="anaekran">
     <div class="wrap">
+      <div id="ozelBant"></div>
+      <div id="siradaki"></div>
       <h1>Gelecek maçlar</h1>
       <p class="lead">Her siklette sıradaki en yakın maç.</p>
       <p class="sub" id="onlineAna" hidden style="margin:-4px 0 14px"></p>
       <ul class="card big" id="yakinList"></ul>
+      <div class="ana-alt" id="anaAlt"></div>
     </div>
   </section>
 
@@ -3211,6 +3254,7 @@ async function mazeretDurum(kutu,mid){
 }
 function mazeretCiz(){
   var now=Date.now();
+  if(window.anaYenile)anaYenile();
   document.querySelectorAll("#yakinList li.home-match").forEach(function(li,i){
     var x=YAKIN[i];if(!x)return;
     var mid=ERTM[i],ert=!!(mid&&ERT[mid]),top=li.querySelector(".hm-top"),ch=li.querySelector(".ert-chip");
@@ -3260,6 +3304,103 @@ document.addEventListener("submit",async function(e){
     bt.disabled=false;
   }
 });
+/* ====== ANA EKRAN YENİLİĞİ: özel gün bandı, sıradaki maç kartı, son duyuru + sonuçlar ====== */
+/* [gün, ay, başlık, metin, tür(k=kutlama, y=anma), siteyi gri yap]. Kendi günlerini OZEL_EK listesine aynı biçimde ekleyebilirsin. */
+var OZEL_GUNLER=[
+  [1,1,"Mutlu yıllar!","Yeni yılda bol galibiyetler dileriz.","k",0],
+  [23,4,"23 Nisan kutlu olsun","Ulusal Egemenlik ve Çocuk Bayramı kutlu olsun.","k",0],
+  [19,5,"19 Mayıs kutlu olsun","Atatürk'ü Anma, Gençlik ve Spor Bayramı kutlu olsun.","k",0],
+  [15,7,"15 Temmuz","Demokrasi ve Milli Birlik Günü. Şehitlerimizi rahmetle anıyoruz.","y",0],
+  [30,8,"30 Ağustos kutlu olsun","Zafer Bayramı kutlu olsun.","k",0],
+  [29,10,"29 Ekim kutlu olsun","Cumhuriyet Bayramı kutlu olsun.","k",0],
+  [10,11,"10 Kasım · 09.05","Ulu Önder Mustafa Kemal Atatürk'ü saygı ve özlemle anıyoruz.","y",1]
+];
+var OZEL_EK=[];
+function bugunIst(){var p=new Date().toLocaleDateString("en-CA",{timeZone:"Europe/Istanbul"}).split("-");return {y:+p[0],m:+p[1],d:+p[2],s:p.join("-")}}
+function ozelBantYaz(){
+  var b=document.getElementById("ozelBant");if(!b)return;
+  var t=bugunIst(),h="",gri=false;
+  OZEL_GUNLER.concat(OZEL_EK).forEach(function(o){
+    if(o[0]===t.d&&o[1]===t.m){h+='<div class="ozel-bant'+(o[4]==="y"?" yas":"")+'"><b>'+esc(o[2])+'</b>'+esc(o[3])+'</div>';if(o[5])gri=true}
+  });
+  var bg=YAKIN.filter(function(x){return x.t&&new Date(Date.parse(x.t)).toLocaleDateString("en-CA",{timeZone:"Europe/Istanbul"})===t.s&&!ERT[ERTM[YAKIN.indexOf(x)]]});
+  if(bg.length)h+='<div class="ozel-bant mac"><b>Bugün maç günü</b>'+bg.length+' maç var: '+bg.map(function(x){return esc(x.a)+' - '+esc(x.b)}).join(', ')+'</div>';
+  b.innerHTML=h;
+  document.documentElement.classList.toggle("ozel-yas",gri);
+}
+function anaYenile(){
+  ozelBantYaz();
+  var now=Date.now(),sr=document.getElementById("siradaki");
+  if(sr){
+    var en=null;
+    YAKIN.forEach(function(x,i){var t=Date.parse(x.t);if(t>now&&!ERT[ERTM[i]]&&(!en||t<Date.parse(en.t)))en=x});
+    var k=en?en.a+"|"+en.b+"|"+en.t:"";
+    if(sr.getAttribute("data-k")!==k){
+      sr.setAttribute("data-k",k);
+      sr.innerHTML=en?'<div class="sirada"><span class="sir-et">Sıradaki maç · '+esc(ETIKET[en.s]||"")+'</span><div class="sir-pair">'+av(en.a)+'<i>VS</i>'+av(en.b)+'</div><div class="sir-ad">'+esc(en.a)+'<em>vs</em>'+esc(en.b)+'</div><div class="tarih">'+esc(en.d)+'</div><div class="count" data-t="'+esc(en.t)+'"></div></div>':'';
+    }
+  }
+  var al=document.getElementById("anaAlt");if(!al)return;
+  var h="",d=DUY&&DUY[0];
+  if(d)h+='<div class="ana-kutu"><h3>Son duyuru</h3><p>'+esc(d.m.length>220?d.m.slice(0,217)+"…":d.m)+'</p><small>'+esc(tz(d.z))+' · <a href="#duyurular" style="color:inherit">Tüm duyurular</a></small></div>';
+  var so=GECMIS.filter(function(x){return x.k}).slice(-3).reverse();
+  if(so.length)h+='<div class="ana-kutu"><h3>Son sonuçlar</h3>'+so.map(function(x){return '<a class="sn" href="#gecmis"><span><b>🏆 '+esc(x.k)+'</b></span><span>'+esc(x.k===x.a?x.b:x.a)+'</span></a>'}).join("")+'</div>';
+  if(al.getAttribute("data-h")!==h){al.setAttribute("data-h",h);al.innerHTML=h}
+}
+anaYenile();
+setTimeout(anaYenile,2500);
+
+/* ====== ARAMA: güreşçi, maç, duyuru ve sayfa adı ====== */
+function araEtiket(a){var sp=a.querySelectorAll("span");return (sp.length?sp[sp.length-1].textContent:a.textContent).trim()}
+function araSon(q){
+  var kutu=document.getElementById("araSon"),z=slug(q||""),zd=(q||"").toLocaleLowerCase("tr").trim();
+  if(!z){kutu.innerHTML='<div class="ara-bos">Yazmaya başla: güreşçi adı, maç, duyuru ya da sayfa (ör. "mazeret", "puan").</div>';return}
+  var g=Object.keys(BY).filter(function(a){return slug(a).indexOf(z)>=0}).slice(0,8);
+  var m=[];
+  [["Yaklaşan maç",YAKIN,"#anaekran"],["Maç",MACLAR,"#maclar"],["Geçmiş maç",GECMIS,"#gecmis"]].forEach(function(t){
+    t[1].forEach(function(x){if(slug(x.a+" "+x.b).indexOf(z)>=0&&m.length<10)m.push({a:x,e:t[0],h:t[2]})});
+  });
+  var du=(DUY||[]).filter(function(x){return String(x.m).toLocaleLowerCase("tr").indexOf(zd)>=0}).slice(0,5);
+  var sy=[].slice.call(document.querySelectorAll("#drawer a.item")).filter(function(a){return a.offsetParent!==null&&a.id!=="cikisLink"&&a.id!=="tumCikisLink"&&a.id!=="bildirimLink"&&slug(araEtiket(a)).indexOf(z)>=0}).slice(0,6);
+  var h="";
+  if(g.length)h+='<div class="ara-g">Güreşçiler</div>'+g.map(function(a){return '<a class="ar" href="#guresci/'+slug(a)+'"><b>'+esc(a)+'</b><small>'+esc(ETIKET[BY[a].s]||"")+'</small></a>'}).join("");
+  if(m.length)h+='<div class="ara-g">Maçlar</div>'+m.map(function(o){var x=o.a;return '<a class="ar" href="'+o.h+'"><b>'+esc(x.a)+' vs '+esc(x.b)+'</b><small>'+o.e+(x.k?' · Kazanan: '+esc(x.k):(x.d?' · '+esc(x.d):''))+'</small></a>'}).join("");
+  if(du.length)h+='<div class="ara-g">Duyurular</div>'+du.map(function(x){return '<a class="ar" href="#duyurular"><b>'+esc(String(x.m).length>110?String(x.m).slice(0,107)+"…":x.m)+'</b><small>'+esc(tz(x.z))+'</small></a>'}).join("");
+  if(sy.length)h+='<div class="ara-g">Sayfalar</div>'+sy.map(function(a){return '<a class="ar" href="'+esc(a.getAttribute("href"))+'"><b>'+esc(araEtiket(a))+'</b></a>'}).join("");
+  kutu.innerHTML=h||'<div class="ara-bos">Sonuç bulunamadı.</div>';
+}
+function araAc(){var o=document.getElementById("araOv");o.hidden=false;var i=document.getElementById("araIn");i.value="";araSon("");setTimeout(function(){i.focus()},50)}
+function araKapat(){document.getElementById("araOv").hidden=true}
+document.getElementById("araBtn").addEventListener("click",araAc);
+document.getElementById("araIn").addEventListener("input",function(){araSon(this.value)});
+document.getElementById("araOv").addEventListener("click",function(e){if(e.target===this||(e.target.closest&&e.target.closest("a.ar")))araKapat()});
+document.addEventListener("keydown",function(e){if(e.key==="Escape"){araKapat();tanitimKapat()}});
+
+/* ====== İLK GİRİŞ TANITIMI (bir kez gösterilir) ====== */
+var TANITIM=[
+  ["⚔️","Maçları takip et","Sıradaki maçlar, geri sayım, sonuçlar ve puan durumu hep ana ekranda."],
+  ["🎯","Tahmin et, oyla, konuş","Maçlara tahmin yap, anketlere katıl, sohbette diğer güreşçilerle yazış."],
+  ["🔔","Hesabınla giriş yap","Profilini düzenle, maç talebi ve mazeret gönder, bildirimleri aç; duyuruları ve maç saatini kaçırma."]
+];
+var TN_I=0;
+function tanitimCiz(){
+  var t=TANITIM[TN_I];
+  document.getElementById("tnIk").textContent=t[0];document.getElementById("tnBas").textContent=t[1];document.getElementById("tnMet").textContent=t[2];
+  document.getElementById("tnNok").innerHTML=TANITIM.map(function(_,i){return '<i'+(i===TN_I?' class="on"':'')+'></i>'}).join("");
+  document.getElementById("tnIleri").textContent=TN_I===TANITIM.length-1?"Başla":"İleri";
+}
+function tanitimKapat(){
+  var o=document.getElementById("tanitim");if(!o||o.hidden)return;
+  o.hidden=true;try{localStorage.setItem("efcTanitim","1")}catch(e){}
+}
+function tanitimAc(){TN_I=0;tanitimCiz();document.getElementById("tanitim").hidden=false}
+document.getElementById("tnIleri").addEventListener("click",function(){if(TN_I>=TANITIM.length-1)tanitimKapat();else{TN_I++;tanitimCiz()}});
+document.getElementById("tnAtla").addEventListener("click",tanitimKapat);
+setTimeout(function(){
+  var gor=false;try{gor=localStorage.getItem("efcTanitim")==="1"}catch(e){}
+  if(!gor&&!OTURUM&&(location.hash===""||location.hash==="#anaekran"))tanitimAc();
+},1800);
+
 /* ====== MAÇ SONUCU GÖRSELİ ======
    Geçmiş maç satırındaki "Görsel oluştur" butonu 1080x1350 bir sonuç görseli çizer; telefonda paylaşma menüsünü açar, olmazsa indirir. */
 function resimYukle(src){return new Promise(function(ok){var i=new Image();i.onload=function(){ok(i)};i.onerror=function(){ok(null)};i.src=src})}
@@ -3369,6 +3510,7 @@ async function pushGonder(z){
 var BN_YANIT_Z=0;
 /* Yeni duyuru: bildirim açıksa ve site arka plandaysa telefona bildirim gider (site açıkken zaten üstte banner çıkar). İlk bakışta eski duyurular bildirilmez. */
 function duyuruBildir(l){
+  if(window.anaYenile)anaYenile();
   if(!bildirimAcik()||!l||!l.length)return;
   var son=+bnGet("duy"),enYeni=l[0].z;
   if(!son){bnSet("duy",enYeni);return}
