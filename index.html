@@ -1843,7 +1843,7 @@ function admCiz(){
 function uyeListeHtml(){
   return MISAFIR.map(function(m){
     var k=slug(m.kullanici||m.ad),ozel=slug(m.ad)==="eftal";
-    return '<div class="dy"><p><b>'+esc(m.ad)+'</b> · '+esc(m.email||slug(m.ad)+'@efc.local')+(ozel?'':' <button class="abtn alt" type="button" data-uyesil="'+esc(k)+'" style="font-size:15px;padding:6px 12px;min-height:0;margin-left:8px">Kaldır</button>')+'</p></div>';
+    return '<div class="dy"><p><b>'+esc(m.ad)+'</b> · '+esc(m.email||slug(m.ad)+'@efc.local')+(ozel?'':' <button class="abtn alt" type="button" data-uyesil="'+esc(k)+'" style="font-size:15px;padding:6px 12px;min-height:0;margin-left:8px">Kaldır</button>')+'</p>'+sansurKutuHtml(m)+'</div>';
   }).join("")||'<p class="sub">Özel üye yok.</p>';
 }
 function uyeYonetHtml(){
@@ -1880,9 +1880,9 @@ document.addEventListener("click",function(e){
   var k=bt.getAttribute("data-uyesil"),m=MISAFIR.filter(function(x){return slug(x.kullanici||x.ad)===k})[0];
   if(!m||slug(m.ad)==="eftal")return;
   if(!confirm("\""+m.ad+"\" özel üyelikten kaldırılsın mı?\nKaldırınca siteye giremez (Yayınla'ya basman gerekir). Firebase Authentication → Users'tan hesabını da silmeyi unutma."))return;
-  var n0=(ADM_D.EKUYE||[]).length;
+  var n0=(ADM_D.EKUYE||[]).length,eski0=(ADM_D.EKUYE||[]).filter(function(x){return slug(x.kullanici||x.ad)===k})[0];
   ADM_D.EKUYE=(ADM_D.EKUYE||[]).filter(function(x){return slug(x.kullanici||x.ad)!==k});
-  if(ADM_D.EKUYE.length===n0){if(!Array.isArray(ADM_D.MISAFIRSIL))ADM_D.MISAFIRSIL=[];if(ADM_D.MISAFIRSIL.indexOf(k)<0)ADM_D.MISAFIRSIL.push(k)}   /* koda yazılı üye: gizleme listesine */
+  if(ADM_D.EKUYE.length===n0||(eski0&&eski0.o)){if(!Array.isArray(ADM_D.MISAFIRSIL))ADM_D.MISAFIRSIL=[];if(ADM_D.MISAFIRSIL.indexOf(k)<0)ADM_D.MISAFIRSIL.push(k)}   /* koda yazılı üye: gizleme listesine */
   MISAFIR=MISAFIR.filter(function(x){return slug(x.kullanici||x.ad)!==k});
   admKaydet();
   var ul=document.getElementById("uyeListe");if(ul)ul.innerHTML=uyeListeHtml();
@@ -3401,6 +3401,46 @@ setTimeout(function(){
   if(!gor&&!OTURUM&&(location.hash===""||location.hash==="#anaekran"))tanitimAc();
 },1800);
 
+/* ====== SANSÜR (özel üye hesaplarında seçilen kişilerin fotoğrafı bulanık) ======
+   Her özel üyenin kaydında "sansur" listesi tutulur: bu üye siteye girince listedeki kişilerin fotoğrafı bulanık görünür.
+   Liste yoksa eski ayar (bulanik + acik) geçerlidir. */
+function sansurAdlari(){var o={};[GURESCILER,ANTRENORLER,YONETIM].forEach(function(l){(l||[]).forEach(function(x){if(x&&x.ad)o[x.ad]=1})});(HAKEMLER||[]).forEach(function(x){o[x]=1});return Object.keys(o)}
+function sansurListe(m){
+  var tum=sansurAdlari();
+  if(Array.isArray(m.sansur)){var sc=m.sansur.map(slug);return tum.filter(function(n){return sc.indexOf(slug(n))>=0})}
+  if(m.bulanik){var ac=(m.acik||[]).map(slug);return tum.filter(function(n){return ac.indexOf(slug(n))<0})}
+  return [];
+}
+function sansurKutuHtml(m){
+  var k=slug(m.kullanici||m.ad),sec=sansurListe(m).map(slug);
+  return '<details class="sns" style="margin-top:8px"><summary style="cursor:pointer;font-weight:700">Sansür ayarı ('+sec.length+' kişi bulanık)</summary>'+
+    '<p class="sub">İşaretlediğin kişilerin fotoğrafı <b>bu hesapla giriş yapıldığında</b> bulanık görünür. İşaretsiz olanlar normal görünür. Değişiklik <b>Yayınla</b>dan sonra herkeste geçerli olur.</p>'+
+    '<p><button type="button" class="abtn alt" data-sn-top="'+esc(k)+'" data-v="1" style="font-size:15px;padding:6px 12px;min-height:0">Hepsini seç</button> <button type="button" class="abtn alt" data-sn-top="'+esc(k)+'" data-v="0" style="font-size:15px;padding:6px 12px;min-height:0">Temizle</button></p>'+
+    '<div class="yzl">'+sansurAdlari().map(function(n){return '<label class="ck"><input type="checkbox" data-sn="'+esc(k)+'" value="'+esc(n)+'"'+(sec.indexOf(slug(n))>=0?' checked':'')+'> '+esc(n)+'</label>'}).join("")+'</div></details>';
+}
+function sansurKaydet(k,liste){
+  if(!admin()||altYon()||!ADM_D)return;
+  if(!Array.isArray(ADM_D.EKUYE))ADM_D.EKUYE=[];
+  var m=MISAFIR.filter(function(x){return slug(x.kullanici||x.ad)===k})[0];if(!m)return;
+  var e=ADM_D.EKUYE.filter(function(x){return slug(x.kullanici||x.ad)===k})[0];
+  if(!e){e={ad:m.ad,kullanici:String(m.kullanici||m.ad),email:String(m.email||""),bulanik:!!m.bulanik,acik:(m.acik||[]).slice(),o:1};ADM_D.EKUYE.push(e)}
+  e.sansur=liste.slice();m.sansur=liste.slice();admKaydet();
+}
+function sansurOku(k){var l=[];document.querySelectorAll('input[data-sn="'+k+'"]').forEach(function(c){if(c.checked)l.push(c.value)});return l}
+document.addEventListener("change",function(e){
+  var t=e.target,k=t&&t.getAttribute&&t.getAttribute("data-sn");if(!k)return;
+  var l=sansurOku(k);sansurKaydet(k,l);
+  var d=t.closest("details"),sm=d&&d.querySelector("summary");if(sm)sm.textContent="Sansür ayarı ("+l.length+" kişi bulanık)";
+});
+document.addEventListener("click",function(e){
+  var b=e.target.closest&&e.target.closest("[data-sn-top]");if(!b)return;
+  var k=b.getAttribute("data-sn-top"),v=b.getAttribute("data-v")==="1";
+  document.querySelectorAll('input[data-sn="'+k+'"]').forEach(function(c){c.checked=v});
+  var l=sansurOku(k);sansurKaydet(k,l);
+  var d=b.closest("details"),sm=d&&d.querySelector("summary");if(sm)sm.textContent="Sansür ayarı ("+l.length+" kişi bulanık)";
+});
+var SANSUR_AD=[];   /* giriş yapan üyede bulanık görünecek isimler (görsel oluştururken de uygulanır) */
+
 /* ====== MAÇ SONUCU GÖRSELİ ======
    Geçmiş maç satırındaki "Görsel oluştur" butonu 1080x1350 bir sonuç görseli çizer; telefonda paylaşma menüsünü açar, olmazsa indirir. */
 function resimYukle(src){return new Promise(function(ok){var i=new Image();i.onload=function(){ok(i)};i.onerror=function(){ok(null)};i.src=src})}
@@ -3410,6 +3450,7 @@ async function fotoBul(ad){
   return null;
 }
 function yuvarlakFoto(g,img,ad,cx,cy,r,halka,renk){
+  if(img&&SANSUR_AD.indexOf(ad)>=0){var kc=document.createElement("canvas");kc.width=Math.max(6,Math.round(img.width/30));kc.height=Math.max(6,Math.round(img.height/30));kc.getContext("2d").drawImage(img,0,0,kc.width,kc.height);img=kc;g.imageSmoothingEnabled=true}
   g.save();g.beginPath();g.arc(cx,cy,r,0,Math.PI*2);g.closePath();g.fillStyle="#1a1a1f";g.fill();g.clip();
   if(img){var k=Math.max(2*r/img.width,2*r/img.height),w=img.width*k,h=img.height*k;g.drawImage(img,cx-w/2,cy-r+(2*r-h)/3,w,h)}
   else{g.fillStyle="rgba(255,255,255,.28)";g.font="900 "+Math.round(r*1.1)+"px "+g.fam;g.textAlign="center";g.textBaseline="middle";g.fillText(ad.charAt(0).toLocaleUpperCase("tr"),cx,cy+r*.06)}
@@ -3602,8 +3643,9 @@ var MISAFIR=[{ad:"Damla",bulanik:true,acik:["Y.Tuğra"]},{ad:"Eftal",bulanik:fal
   ek.forEach(function(x){
     if(!x||typeof x.ad!=="string"||!x.ad)return;
     var k=slug(x.kullanici||x.ad);
-    if(MISAFIR.some(function(m){return slug(m.kullanici||m.ad)===k}))return;
-    MISAFIR.push({ad:x.ad,kullanici:String(x.kullanici||x.ad),email:String(x.email||""),bulanik:!!x.bulanik,acik:Array.isArray(x.acik)?x.acik.map(String):[]});
+    var var0=MISAFIR.filter(function(m){return slug(m.kullanici||m.ad)===k})[0];
+    if(var0){if(Array.isArray(x.sansur))var0.sansur=x.sansur.map(String);return}
+    MISAFIR.push({ad:x.ad,kullanici:String(x.kullanici||x.ad),email:String(x.email||""),bulanik:!!x.bulanik,acik:Array.isArray(x.acik)?x.acik.map(String):[],sansur:Array.isArray(x.sansur)?x.sansur.map(String):null});
   });
 })();
 function misafirBul(ad){var s=slug(String(ad||""));for(var i=0;i<MISAFIR.length;i++)if(slug(MISAFIR[i].ad)===s||slug(MISAFIR[i].kullanici||"")===s)return MISAFIR[i];return null}
@@ -3794,11 +3836,9 @@ document.addEventListener("submit",async function(e){
 (function(){
   var adm=admin(),cl=document.getElementById("cikisLink"),al=document.getElementById("admLink");
   if(FB_KEY&&!adm)al.style.display="none";   /* yönetici bağlantısı üyelere görünmez (yönetici adresi #yonetici ile girer) */
-  if(OTURUM){var mg=misafirBul(OTURUM.ad);if(mg&&mg.bulanik){
-    var ac=(mg.acik||[]).map(slug),ad2={};
-    [GURESCILER,ANTRENORLER,YONETIM].forEach(function(l){(l||[]).forEach(function(x){if(x&&x.ad)ad2[x.ad]=1})});
-    (HAKEMLER||[]).forEach(function(x){ad2[x]=1});
-    var sel=Object.keys(ad2).filter(function(n){return ac.indexOf(slug(n))<0}).map(function(n){return 'img[alt="'+n.replace(/["\\]/g,"\\$&")+'"]'}).join(",");
+  if(OTURUM){var mg=misafirBul(OTURUM.ad);if(mg){
+    SANSUR_AD=sansurListe(mg);
+    var sel=SANSUR_AD.map(function(n){return 'img[alt="'+n.replace(/["\\]/g,"\\$&")+'"]'}).join(",");
     if(sel){var st=document.createElement("style");st.textContent=sel+'{filter:blur(18px) !important;clip-path:inset(0);-webkit-user-drag:none}';document.head.appendChild(st)}
   }}
   if(OTURUM&&!misafirBul(OTURUM.ad)){var pl2=document.getElementById("profilimLink");if(pl2){pl2.href="#guresci/"+slug(OTURUM.ad);pl2.style.display="block"}}   /* giriş yapan güreşçinin kendi profili (düzenleme düğmesi orada) */
