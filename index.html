@@ -1843,12 +1843,12 @@ function admCiz(){
 function uyeListeHtml(){
   return MISAFIR.map(function(m){
     var k=slug(m.kullanici||m.ad),ozel=slug(m.ad)==="eftal";
-    return '<div class="dy"><p><b>'+esc(m.ad)+'</b> · '+esc(m.email||slug(m.ad)+'@efc.local')+(ozel?'':' <button class="abtn alt" type="button" data-uyesil="'+esc(k)+'" style="font-size:15px;padding:6px 12px;min-height:0;margin-left:8px">Kaldır</button>')+'</p>'+sansurKutuHtml(m)+'</div>';
+    return '<div class="dy"><p><b>'+esc(m.ad)+'</b> · '+esc(m.email||slug(m.ad)+'@efc.local')+(ozel?'':' <button class="abtn alt" type="button" data-uyesil="'+esc(k)+'" style="font-size:15px;padding:6px 12px;min-height:0;margin-left:8px">Kaldır</button>')+'</p>'+denemeSatirHtml(m)+sansurKutuHtml(m)+'</div>';
   }).join("")||'<p class="sub">Özel üye yok.</p>';
 }
 function uyeYonetHtml(){
   return '<h3>Özel üyeler (misafir) ekle / kaldır</h3><p class="sub">E-posta ve kullanıcı adını gir. Site geçici şifre oluşturur. Ardından bu e-posta ve şifreyle Firebase Authentication → Users → Add user bölümünden hesabı aç. Üye listesi taslağa yazılır: <b>Yayınla</b>ya basınca tüm tarayıcılarda geçerli olur.</p>'+
-    '<form id="admUyeEkle" class="aw" autocomplete="off"><div class="ar-g"><label>E-posta<input id="admUyeMail" type="email" required placeholder="ornek@efc.local"></label><label>Kullanıcı adı<input id="admUyeAd" required maxlength="50" placeholder="Kullanıcı adı"></label></div><button class="abtn" type="submit">Üyeyi oluştur</button><p class="adm-err" id="admUyeSonuc" role="status"></p></form>'+
+    '<form id="admUyeEkle" class="aw" autocomplete="off"><div class="ar-g"><label>E-posta<input id="admUyeMail" type="email" required placeholder="ornek@efc.local"></label><label>Kullanıcı adı<input id="admUyeAd" required maxlength="50" placeholder="Kullanıcı adı"></label></div><label class="ck" style="margin:8px 0"><input type="checkbox" id="admUyeDeneme"> Deneme sürümü (süreli ve kısıtlı hesap)</label><label>Deneme kaç gün (sadece deneme sürümünde geçerli)<input id="admUyeGun" type="number" min="1" max="365" value="3"></label><button class="abtn" type="submit">Üyeyi oluştur</button><p class="adm-err" id="admUyeSonuc" role="status"></p></form>'+
     '<div id="uyeListe">'+uyeListeHtml()+'</div>';
 }
 document.addEventListener("submit",function(e){
@@ -1865,12 +1865,17 @@ document.addEventListener("submit",function(e){
   var rnd=new Uint32Array(18);if(window.crypto&&crypto.getRandomValues)crypto.getRandomValues(rnd);else for(var q=0;q<rnd.length;q++)rnd[q]=Math.floor(Math.random()*4294967296);
   for(var q=0;q<18;q++)pw+=chars[rnd[q]%chars.length];
   var yeni={ad:ad,kullanici:ad,email:mail,bulanik:false,acik:[]};
+  if(document.getElementById("admUyeDeneme").checked){
+    var gn=Math.round(+document.getElementById("admUyeGun").value);
+    if(!(gn>=1&&gn<=365)){out.textContent="Deneme için gün sayısını 1 ile 365 arasında yaz.";return}
+    yeni.deneme=true;yeni.gun=gn;yeni.bas=Date.now();
+  }
   ADM_D.EKUYE.push(yeni);
   ADM_D.MISAFIRSIL=(ADM_D.MISAFIRSIL||[]).filter(function(k){return k!==slug(ad)});
   admKaydet();
   MISAFIR.push(yeni);
   var ul=document.getElementById("uyeListe");if(ul)ul.innerHTML=uyeListeHtml();
-  out.innerHTML="Üye eklendi. Firebase Authentication hesabını şu bilgilerle aç:<br><b>E-posta:</b> "+esc(mail)+"<br><b>Geçici şifre:</b> <code>"+esc(pw)+"</code><br><small>Üyenin her cihazdan girebilmesi için yönetim panelinden <b>Yayınla</b>ya bas.</small>";
+  out.innerHTML="Üye eklendi"+(yeni.deneme?" (deneme sürümü: "+yeni.gun+" gün)":"")+". Firebase Authentication hesabını şu bilgilerle aç:<br><b>E-posta:</b> "+esc(mail)+"<br><b>Geçici şifre:</b> <code>"+esc(pw)+"</code><br><small>Üyenin her cihazdan girebilmesi için yönetim panelinden <b>Yayınla</b>ya bas.</small>";
   e.target.reset();
 });
 document.addEventListener("click",function(e){
@@ -3644,11 +3649,90 @@ var MISAFIR=[{ad:"Damla",bulanik:true,acik:["Y.Tuğra"]},{ad:"Eftal",bulanik:fal
     if(!x||typeof x.ad!=="string"||!x.ad)return;
     var k=slug(x.kullanici||x.ad);
     var var0=MISAFIR.filter(function(m){return slug(m.kullanici||m.ad)===k})[0];
-    if(var0){if(Array.isArray(x.sansur))var0.sansur=x.sansur.map(String);return}
-    MISAFIR.push({ad:x.ad,kullanici:String(x.kullanici||x.ad),email:String(x.email||""),bulanik:!!x.bulanik,acik:Array.isArray(x.acik)?x.acik.map(String):[],sansur:Array.isArray(x.sansur)?x.sansur.map(String):null});
+    if(var0){if(Array.isArray(x.sansur))var0.sansur=x.sansur.map(String);if(x.deneme){var0.deneme=true;var0.gun=+x.gun||0;var0.bas=+x.bas||0}return}
+    MISAFIR.push({ad:x.ad,kullanici:String(x.kullanici||x.ad),email:String(x.email||""),bulanik:!!x.bulanik,acik:Array.isArray(x.acik)?x.acik.map(String):[],sansur:Array.isArray(x.sansur)?x.sansur.map(String):null,deneme:!!x.deneme,gun:+x.gun||0,bas:+x.bas||0});
   });
 })();
 function misafirBul(ad){var s=slug(String(ad||""));for(var i=0;i<MISAFIR.length;i++)if(slug(MISAFIR[i].ad)===s||slug(MISAFIR[i].kullanici||"")===s)return MISAFIR[i];return null}
+
+/* ====== DENEME SÜRÜMÜ ======
+   Yönetici panelinde üye eklerken "Deneme sürümü" işaretlenir ve gün sayısı yazılır. Süre, üyenin İLK GİRİŞİNDEN başlar (Firebase /denemeBas/<kullanıcı>_<sayaç> altına sunucu saatiyle bir kez yazılır;
+   panelde "Sayacı sıfırla" yeni bir sayaç anahtarı açar, süre bir sonraki girişten yeniden başlar). Süre bitince giriş yapılamaz, açık oturum kapanır.
+   Deneme üyesi siteyi görür ama form göndermek, oy vermek, mazeret bildirmek, görsel oluşturmak gibi işlemleri yapamaz.
+   Kapatılacak sayfaları DENEME_GIZLI_SAYFA listesinden değiştirebilirsin. */
+var DENEME_AKTIF=false;
+var DENEME_GIZLI_SAYFA=["istek","mactalebi"];
+function denemeKalan(m){if(!m||!m.deneme)return null;var tam=Math.max(0,+m.gun||0)*86400000;if(!m.ilk)return tam;return m.ilk+tam-Date.now()}   /* m.ilk: ilk giriş zamanı (sunucu saati), yoksa süre henüz başlamadı */
+function denemeAnahtar(m){return slug(m.kullanici||m.ad)+"_"+(+m.bas||0)}
+function denemeOnbellek(m){if(!m||!m.deneme)return;try{var c=+localStorage.getItem("efcDenemeIlk_"+denemeAnahtar(m));if(c>0)m.ilk=c}catch(x){}}
+function denemeBannerGuncelle(m){var e=document.querySelector("#denemeBar .dg");if(e)e.textContent=denemeGun(m)+" gün"}
+async function denemeIlkYukle(m,token){
+  var url=FB_URL.replace(/\/$/,"")+"/denemeBas/"+encodeURIComponent(denemeAnahtar(m))+".json?auth="+encodeURIComponent(token);
+  var r=await fetch(url);if(!r.ok)throw new Error("deneme");
+  var v=await r.json();
+  if(typeof v!=="number"){
+    var w=await fetch(url,{method:"PUT",body:JSON.stringify({".sv":"timestamp"})});
+    if(w.ok){v=await w.json()}
+    if(typeof v!=="number"){var r2=await fetch(url);if(!r2.ok)throw new Error("deneme");v=await r2.json()}   /* başka cihaz önce yazdıysa onu al */
+  }
+  if(typeof v!=="number")throw new Error("deneme");
+  m.ilk=v;try{localStorage.setItem("efcDenemeIlk_"+denemeAnahtar(m),String(v))}catch(x){}
+  if(DENEME_AKTIF)denemeBannerGuncelle(m);
+}
+function denemeGun(m){var k=denemeKalan(m);return k===null?null:Math.max(0,Math.ceil(k/86400000))}
+function denemeBitti(m){var k=denemeKalan(m);return k!==null&&k<=0}
+function denemeToast(t){
+  var d=document.getElementById("denemeToast");if(d)d.remove();
+  d=document.createElement("div");d.id="denemeToast";d.setAttribute("role","alert");d.textContent=t;
+  d.style.cssText="position:fixed;left:50%;transform:translateX(-50%);bottom:calc(env(safe-area-inset-bottom,0px) + 90px);z-index:80;max-width:90vw;background:var(--surface);color:var(--bone);border:1px solid var(--gold);border-radius:10px;padding:10px 16px;font-size:16px;box-shadow:0 8px 28px rgba(0,0,0,.5)";
+  document.body.appendChild(d);setTimeout(function(){if(d.parentNode)d.remove()},3500);
+}
+function denemeBaslat(m){
+  DENEME_AKTIF=true;
+  var st=document.createElement("style");
+  st.textContent=DENEME_GIZLI_SAYFA.map(function(p){return 'a.item[href="#'+p+'"],[data-page="'+p+'"] form{display:none !important}'}).join("");
+  document.head.appendChild(st);
+  DENEME_GIZLI_SAYFA.forEach(function(p){
+    var w=document.querySelector('[data-page="'+p+'"] .wrap');
+    if(w)w.insertAdjacentHTML("afterbegin",'<p class="adm-note">Deneme sürümünde bu bölüm kapalı.</p>');
+    var l=document.querySelector('a.item[href="#'+p+'"]'),g=l&&l.closest(".drawer-group");
+    if(g&&Array.prototype.every.call(g.querySelectorAll("a.item"),function(a){return DENEME_GIZLI_SAYFA.indexOf(String(a.getAttribute("href")).slice(1))>=0}))g.style.display="none";
+  });
+  /* form gönderme, oy verme, mazeret bildirme, maç görseli oluşturma deneme üyesine kapalı */
+  document.addEventListener("submit",function(e){e.preventDefault();e.stopPropagation();denemeToast("Deneme sürümünde bu özellik kapalı.")},true);
+  document.addEventListener("click",function(e){
+    var b=e.target.closest&&e.target.closest(".mzr-b,.tahmin-b button,.sonuc-b");if(!b)return;
+    e.preventDefault();e.stopPropagation();denemeToast("Deneme sürümünde bu özellik kapalı.");
+  },true);
+  /* ekranda kalan gün */
+  var kapali=false;try{kapali=sessionStorage.getItem("efcDenemeKapat")==="1"}catch(x){}
+  if(!kapali){
+    var g=denemeGun(m),d=document.createElement("div");d.id="denemeBar";d.setAttribute("role","status");
+    d.style.cssText="position:fixed;left:12px;right:12px;bottom:calc(env(safe-area-inset-bottom,0px) + 12px);z-index:70;max-width:520px;margin:0 auto;background:var(--surface);border:1px solid var(--gold);border-radius:12px;padding:12px 40px 12px 14px;box-shadow:0 8px 28px rgba(0,0,0,.5);font-size:16px;line-height:1.4";
+    d.innerHTML='<b>Deneme sürümü</b><br><b class="dg">'+g+' gün</b> giriş hakkınız var.<br><small style="color:var(--muted)">Deneme sürümünde istek gönderme, maç talebi, oy verme gibi bazı özellikler kapalıdır.</small><button type="button" aria-label="Kapat" style="position:absolute;top:4px;right:8px;background:none;border:0;color:var(--muted);font-size:24px;line-height:1;cursor:pointer">×</button>';
+    d.querySelector("button").addEventListener("click",function(){d.remove();try{sessionStorage.setItem("efcDenemeKapat","1")}catch(x){}});
+    document.body.appendChild(d);
+  }
+  /* süre açıkken biterse oturumu kapat */
+  setInterval(function(){if(denemeBitti(m)){try{sessionStorage.setItem("efcDenemeBitti","1")}catch(x){}oturumCikis()}},60000);
+}
+function denemeSatirHtml(m){
+  if(!m.deneme)return "";
+  var k=slug(m.kullanici||m.ad);
+  return '<p class="sub" style="margin:6px 0">Deneme sürümü · süre ilk girişten başlar · Toplam hak: <input type="number" min="1" max="365" value="'+(+m.gun||0)+'" data-dengun="'+esc(k)+'" style="width:70px"> gün <button type="button" class="abtn alt" data-denbas="'+esc(k)+'" style="font-size:15px;padding:6px 12px;min-height:0">Sayacı sıfırla</button></p>';
+}
+function denemeKaydet(k,gun,yeniden){
+  if(!admin()||altYon()||!ADM_D)return;
+  var m=MISAFIR.filter(function(x){return slug(x.kullanici||x.ad)===k})[0];if(!m||!m.deneme)return;
+  var e=(ADM_D.EKUYE||[]).filter(function(x){return slug(x.kullanici||x.ad)===k})[0];if(!e)return;
+  if(gun!==null){gun=Math.round(gun);if(!(gun>=1&&gun<=365))return;e.gun=gun;m.gun=gun}
+  if(yeniden){e.bas=Date.now();m.bas=e.bas;m.ilk=0}
+  admKaydet();
+  var ul=document.getElementById("uyeListe");if(ul)ul.innerHTML=uyeListeHtml();
+}
+document.addEventListener("change",function(e){var t=e.target,k=t&&t.getAttribute&&t.getAttribute("data-dengun");if(!k)return;denemeKaydet(k,+t.value,false)});
+document.addEventListener("click",function(e){var b=e.target.closest&&e.target.closest("[data-denbas]");if(!b)return;denemeKaydet(b.getAttribute("data-denbas"),null,true)});
+
 function girAd(u){
   var s=slug(String(u||"").replace(/@efc\\.local$/i,""));
   for(var n=0;n<GURESCILER.length;n++)if(slug(GURESCILER[n].ad)===s)return GURESCILER[n];
@@ -3693,12 +3777,15 @@ async function oturumDogrula(){
   if(!OTURUM||!FB_KEY)return;
   _sonDogrula=Date.now();
   if(!girAd(OTURUM.ad)){oturumCikis();return}   /* özel üyelikten kaldırıldıysa oturumu kapat */
+  var mgD=misafirBul(OTURUM.ad);if(mgD&&denemeBitti(mgD)){try{sessionStorage.setItem("efcDenemeBitti","1")}catch(x){}oturumCikis();return}   /* deneme süresi bitti */
   try{
     var r=await fetch("https://securetoken.googleapis.com/v1/token?key="+encodeURIComponent(FB_KEY),{method:"POST",headers:{"Content-Type":"application/x-www-form-urlencoded"},body:"grant_type=refresh_token&refresh_token="+encodeURIComponent(OTURUM.r)});
     if(r.ok){
       /* açık oturum: KVKK + görsel izni yoksa çıkış (eskiden izin vermeyenler de yeniden onay vermek zorunda) */
       try{
         var tj=await r.json();
+        var mgE=misafirBul(OTURUM.ad);
+        if(mgE&&mgE.deneme){try{await denemeIlkYukle(mgE,tj.id_token)}catch(x){}if(denemeBitti(mgE)){try{sessionStorage.setItem("efcDenemeBitti","1")}catch(x){}oturumCikis();return}}
         var lr=await fetch("https://identitytoolkit.googleapis.com/v1/accounts:lookup?key="+encodeURIComponent(FB_KEY),{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({idToken:tj.id_token})});
         if(lr.ok){var lj=await lr.json(),u0=lj.users&&lj.users[0];if(u0){var dd=dnParse(u0.displayName);if(!(dd.pw&&dd.k&&dd.g)){oturumCikis();return}
           /* "tüm cihazlardan çık" damgası bu cihazın giriş zamanından yeniyse çıkış */
@@ -3735,6 +3822,8 @@ document.addEventListener("submit",async function(e){
   var u=document.getElementById("girisU").value.trim(),p=document.getElementById("girisP").value;
   var w=girAd(u);
   if(!w){er.textContent="Böyle bir güreşçi yok. Kullanıcı adın güreşçi adındır (örn. Y.Tuğra).";return}
+  var mg0=w.misafir?misafirBul(w.ad):null;
+  if(mg0&&denemeBitti(mg0)){er.textContent="Deneme süren doldu. Devam etmek için yönetimle iletişime geç.";return}
   b.disabled=true;er.textContent="Giriş yapılıyor…";
   try{
     var r=await fetch("https://identitytoolkit.googleapis.com/v1/accounts:signInWithPassword?key="+encodeURIComponent(FB_KEY),{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({email:(misafirBul(w.ad)&&misafirBul(w.ad).email)||slug(w.ad)+"@efc.local",password:p,returnSecureToken:true})});
@@ -3746,6 +3835,10 @@ document.addEventListener("submit",async function(e){
         /TOO_MANY_ATTEMPTS/.test(m)?"Çok fazla hatalı deneme. Biraz bekle.":
         /OPERATION_NOT_ALLOWED/.test(m)?"E-posta/şifre girişi Firebase'de açık değil.":"Giriş yapılamadı. Biraz sonra tekrar dene.";
       b.disabled=false;return;
+    }
+    if(mg0&&mg0.deneme){
+      try{await denemeIlkYukle(mg0,j.idToken)}catch(x){er.textContent="Deneme süresi başlatılamadı. Yönetime haber ver.";b.disabled=false;return}
+      if(denemeBitti(mg0)){er.textContent="Deneme süren doldu. Devam etmek için yönetimle iletişime geç.";b.disabled=false;return}
     }
     var d0=dnParse(j.displayName);
     if(d0.pw&&!(d0.k&&d0.g)){
@@ -3834,9 +3927,11 @@ document.addEventListener("submit",async function(e){
   }catch(x){er.textContent="Bağlantı kurulamadı. İnternetini kontrol et.";b.disabled=false}
 });
 (function(){
+  try{if(sessionStorage.getItem("efcDenemeBitti")==="1"){sessionStorage.removeItem("efcDenemeBitti");var ge=document.getElementById("girisErr");if(ge)ge.textContent="Deneme süren doldu. Devam etmek için yönetimle iletişime geç."}}catch(x){}
   var adm=admin(),cl=document.getElementById("cikisLink"),al=document.getElementById("admLink");
   if(FB_KEY&&!adm)al.style.display="none";   /* yönetici bağlantısı üyelere görünmez (yönetici adresi #yonetici ile girer) */
   if(OTURUM){var mg=misafirBul(OTURUM.ad);if(mg){
+    denemeOnbellek(mg);if(mg.deneme&&!denemeBitti(mg))denemeBaslat(mg);
     SANSUR_AD=sansurListe(mg);
     var sel=SANSUR_AD.map(function(n){return 'img[alt="'+n.replace(/["\\]/g,"\\$&")+'"]'}).join(",");
     if(sel){var st=document.createElement("style");st.textContent=sel+'{filter:blur(18px) !important;clip-path:inset(0);-webkit-user-drag:none}';document.head.appendChild(st)}
