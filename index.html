@@ -1693,7 +1693,7 @@ function varsayilanT(){
 function admKopya(){
   function c(x){var o={s:x.s,a:x.a,b:x.b};if(x.t){o.t=x.t;o.d=x.d||tarihMetni(x.t)}if(x.k)o.k=x.k;if(x.y)o.y=x.y;return o}
   function cp(o){return JSON.parse(JSON.stringify(o))}
-  return {YAKIN:YAKIN.map(c),MACLAR:MACLAR.map(c),GECMIS:GECMIS.map(c),GURESCILER:GURESCILER.map(function(w){return {ad:w.ad,s:w.s}}),HAKEMLER:HAKEMLER.slice(),ANTRENORLER:ANTRENORLER.map(function(c){return {ad:c.ad}}),ANTRENOR:cp(ANTRENOR),YONETIM:cp(YONETIM),INSTAGRAM:cp(INSTAGRAM),PROFIL:cp(PROFIL),FOTO:cp(FOTO),HAKKINDA:HAKKINDA.slice(),MUZIK:MUZIK.map(function(m){return {ad:m.ad,dosya:m.dosya}}),GIRISMUZIK:GMUZIK.map(function(m){return {ad:m.ad,dosya:m.dosya}}),YETKILI:cp(YETKILI),PROFILIZIN:profIzin(PROFILIZIN),ANKET:cp(ANKET),EKUYE:cp((VERI&&Array.isArray(VERI.EKUYE))?VERI.EKUYE:[]),MISAFIRSIL:cp((VERI&&Array.isArray(VERI.MISAFIRSIL))?VERI.MISAFIRSIL:[])};
+  return {YAKIN:YAKIN.map(c),MACLAR:MACLAR.map(c),GECMIS:GECMIS.map(c),GURESCILER:GURESCILER.map(function(w){return {ad:w.ad,s:w.s}}),HAKEMLER:HAKEMLER.slice(),ANTRENORLER:ANTRENORLER.map(function(c){return {ad:c.ad}}),ANTRENOR:cp(ANTRENOR),YONETIM:cp(YONETIM),INSTAGRAM:cp(INSTAGRAM),PROFIL:cp(PROFIL),FOTO:cp(FOTO),HAKKINDA:HAKKINDA.slice(),MUZIK:MUZIK.map(function(m){return {ad:m.ad,dosya:m.dosya}}),GIRISMUZIK:GMUZIK.map(function(m){return {ad:m.ad,dosya:m.dosya}}),YETKILI:cp(YETKILI),PROFILIZIN:profIzin(PROFILIZIN),ANKET:cp(ANKET),EKUYE:cp((VERI&&Array.isArray(VERI.EKUYE))?VERI.EKUYE:[]),MISAFIRSIL:cp((VERI&&Array.isArray(VERI.MISAFIRSIL))?VERI.MISAFIRSIL:[]),DENEMEKAPALI:cp((VERI&&Array.isArray(VERI.DENEMEKAPALI))?VERI.DENEMEKAPALI:["istek","mactalebi"])};
 }
 function admKaydet(){
   try{
@@ -1779,6 +1779,7 @@ function admCiz(){
   if(!Array.isArray(ADM_D.ANKET))ADM_D.ANKET=[];
   if(!Array.isArray(ADM_D.EKUYE))ADM_D.EKUYE=[];
   if(!Array.isArray(ADM_D.MISAFIRSIL))ADM_D.MISAFIRSIL=[];
+  if(!Array.isArray(ADM_D.DENEMEKAPALI))ADM_D.DENEMEKAPALI=["istek","mactalebi"];
   try{var lg=JSON.parse(localStorage.getItem("efcEkUyeler")||"[]");   /* eski sürüm: üyeler sadece bu tarayıcıdaydı, şimdi yayın verisine taşınır */
     if(Array.isArray(lg)&&lg.length){
       lg.forEach(function(x){if(x&&x.ad&&!ADM_D.EKUYE.some(function(y){return slug(y.kullanici||y.ad)===slug(x.kullanici||x.ad)})){ADM_D.EKUYE.push(x);if(!misafirBul(x.ad))MISAFIR.push(x)}});
@@ -1849,7 +1850,7 @@ function uyeListeHtml(){
 function uyeYonetHtml(){
   return '<h3>Özel üyeler (misafir) ekle / kaldır</h3><p class="sub">E-posta ve kullanıcı adını gir. Site geçici şifre oluşturur. Ardından bu e-posta ve şifreyle Firebase Authentication → Users → Add user bölümünden hesabı aç. Üye listesi taslağa yazılır: <b>Yayınla</b>ya basınca tüm tarayıcılarda geçerli olur.</p>'+
     '<form id="admUyeEkle" class="aw" autocomplete="off"><div class="ar-g"><label>E-posta<input id="admUyeMail" type="email" required placeholder="ornek@efc.local"></label><label>Kullanıcı adı<input id="admUyeAd" required maxlength="50" placeholder="Kullanıcı adı"></label></div><label class="ck" style="margin:8px 0"><input type="checkbox" id="admUyeDeneme"> Deneme sürümü (süreli ve kısıtlı hesap)</label><label>Deneme kaç gün (sadece deneme sürümünde geçerli)<input id="admUyeGun" type="number" min="1" max="365" value="3"></label><button class="abtn" type="submit">Üyeyi oluştur</button><p class="adm-err" id="admUyeSonuc" role="status"></p></form>'+
-    '<div id="uyeListe">'+uyeListeHtml()+'</div>';
+    '<div id="uyeListe">'+uyeListeHtml()+'</div>'+denemeKapaliHtml();
 }
 document.addEventListener("submit",function(e){
   if(e.target.id!=="admUyeEkle")return;
@@ -2560,7 +2561,7 @@ function yetkiIhlal(D){
   if(dif(B.MUZIK,D.MUZIK))need.muzik=1;
   if(dif(B.GIRISMUZIK||B.MUZIK,D.GIRISMUZIK||D.MUZIK))need.muzik=1;
   if(dif(B.YETKILI||[],D.YETKILI||[]))need.ana=1;
-  if(dif(B.EKUYE||[],D.EKUYE||[])||dif(B.MISAFIRSIL||[],D.MISAFIRSIL||[]))need.ana=1;
+  if(dif(B.EKUYE||[],D.EKUYE||[])||dif(B.MISAFIRSIL||[],D.MISAFIRSIL||[])||dif(B.DENEMEKAPALI||[],D.DENEMEKAPALI||[]))need.ana=1;
   if(dif(profIzin(B.PROFILIZIN),profIzin(D.PROFILIZIN)))need.ana=1;
   if(dif(B.ANKET||[],D.ANKET||[]))need.anket=1;
   return Object.keys(need).filter(function(k){return k==="ana"||!yz(k)});
@@ -3659,9 +3660,9 @@ function misafirBul(ad){var s=slug(String(ad||""));for(var i=0;i<MISAFIR.length;
    Yönetici panelinde üye eklerken "Deneme sürümü" işaretlenir ve gün sayısı yazılır. Süre, üyenin İLK GİRİŞİNDEN başlar (Firebase /denemeBas/<kullanıcı>_<sayaç> altına sunucu saatiyle bir kez yazılır;
    panelde "Sayacı sıfırla" yeni bir sayaç anahtarı açar, süre bir sonraki girişten yeniden başlar). Süre bitince giriş yapılamaz, açık oturum kapanır.
    Deneme üyesi siteyi görür ama form göndermek, oy vermek, mazeret bildirmek, görsel oluşturmak gibi işlemleri yapamaz.
-   Kapatılacak sayfaları DENEME_GIZLI_SAYFA listesinden değiştirebilirsin. */
+   Kapalı sayfalar yönetici panelinde "Deneme sürümünde kapalı sayfalar" bölümünden seçilir. */
 var DENEME_AKTIF=false;
-var DENEME_GIZLI_SAYFA=["istek","mactalebi"];
+var DENEME_GIZLI_SAYFA=(VERI&&Array.isArray(VERI.DENEMEKAPALI))?VERI.DENEMEKAPALI.map(String):["istek","mactalebi"];   /* yönetici panelinden (Deneme sürümünde kapalı sayfalar) ayarlanır */
 function denemeKalan(m){if(!m||!m.deneme)return null;var tam=Math.max(0,+m.gun||0)*86400000;if(!m.ilk)return tam;return m.ilk+tam-Date.now()}   /* m.ilk: ilk giriş zamanı (sunucu saati), yoksa süre henüz başlamadı */
 function denemeAnahtar(m){return slug(m.kullanici||m.ad)+"_"+(+m.bas||0)}
 function denemeOnbellek(m){if(!m||!m.deneme)return;try{var c=+localStorage.getItem("efcDenemeIlk_"+denemeAnahtar(m));if(c>0)m.ilk=c}catch(x){}}
@@ -3690,13 +3691,14 @@ function denemeToast(t){
 function denemeBaslat(m){
   DENEME_AKTIF=true;
   var st=document.createElement("style");
-  st.textContent=DENEME_GIZLI_SAYFA.map(function(p){return 'a.item[href="#'+p+'"],[data-page="'+p+'"] form{display:none !important}'}).join("");
+  var kapali=DENEME_GIZLI_SAYFA.slice();if(kapali.indexOf("guresciler")>=0&&kapali.indexOf("guresci")<0)kapali.push("guresci");   /* güreşçiler kapalıysa profil sayfası da kapalı */
+  st.textContent=kapali.map(function(p){var q='[data-page~="'+p+'"]';return 'a.item[href="#'+p+'"],'+q+' .wrap>*{display:none !important}'+q+' .wrap>.den-not{display:block !important}'}).join("");
   document.head.appendChild(st);
-  DENEME_GIZLI_SAYFA.forEach(function(p){
-    var w=document.querySelector('[data-page="'+p+'"] .wrap');
-    if(w)w.insertAdjacentHTML("afterbegin",'<p class="adm-note">Deneme sürümünde bu bölüm kapalı.</p>');
+  kapali.forEach(function(p){
+    var w=document.querySelector('[data-page~="'+p+'"] .wrap');
+    if(w)w.insertAdjacentHTML("afterbegin",'<p class="adm-note den-not">Deneme sürümünde bu bölüm kapalı.</p>');
     var l=document.querySelector('a.item[href="#'+p+'"]'),g=l&&l.closest(".drawer-group");
-    if(g&&Array.prototype.every.call(g.querySelectorAll("a.item"),function(a){return DENEME_GIZLI_SAYFA.indexOf(String(a.getAttribute("href")).slice(1))>=0}))g.style.display="none";
+    if(g&&Array.prototype.every.call(g.querySelectorAll("a.item"),function(a){return kapali.indexOf(String(a.getAttribute("href")).slice(1))>=0}))g.style.display="none";
   });
   /* form gönderme, oy verme, mazeret bildirme, maç görseli oluşturma deneme üyesine kapalı */
   document.addEventListener("submit",function(e){e.preventDefault();e.stopPropagation();denemeToast("Deneme sürümünde bu özellik kapalı.")},true);
@@ -3705,8 +3707,8 @@ function denemeBaslat(m){
     e.preventDefault();e.stopPropagation();denemeToast("Deneme sürümünde bu özellik kapalı.");
   },true);
   /* ekranda kalan gün */
-  var kapali=false;try{kapali=sessionStorage.getItem("efcDenemeKapat")==="1"}catch(x){}
-  if(!kapali){
+  var bk=false;try{bk=sessionStorage.getItem("efcDenemeKapat")==="1"}catch(x){}
+  if(!bk){
     var g=denemeGun(m),d=document.createElement("div");d.id="denemeBar";d.setAttribute("role","status");
     d.style.cssText="position:fixed;left:12px;right:12px;bottom:calc(env(safe-area-inset-bottom,0px) + 12px);z-index:70;max-width:520px;margin:0 auto;background:var(--surface);border:1px solid var(--gold);border-radius:12px;padding:12px 40px 12px 14px;box-shadow:0 8px 28px rgba(0,0,0,.5);font-size:16px;line-height:1.4";
     d.innerHTML='<b>Deneme sürümü</b><br><b class="dg">'+g+' gün</b> giriş hakkınız var.<br><small style="color:var(--muted)">Deneme sürümünde istek gönderme, maç talebi, oy verme gibi bazı özellikler kapalıdır.</small><button type="button" aria-label="Kapat" style="position:absolute;top:4px;right:8px;background:none;border:0;color:var(--muted);font-size:24px;line-height:1;cursor:pointer">×</button>';
@@ -3716,6 +3718,22 @@ function denemeBaslat(m){
   /* süre açıkken biterse oturumu kapat */
   setInterval(function(){if(denemeBitti(m)){try{sessionStorage.setItem("efcDenemeBitti","1")}catch(x){}oturumCikis()}},60000);
 }
+function denemeKapaliHtml(){
+  var sec=(ADM_D&&Array.isArray(ADM_D.DENEMEKAPALI))?ADM_D.DENEMEKAPALI:DENEME_GIZLI_SAYFA,items=[];
+  document.querySelectorAll("#drawer .drawer-group:not(.drawer-admin) a.item").forEach(function(a){
+    var h=String(a.getAttribute("href")||"");if(h.charAt(0)!=="#"||a.id==="profilimLink")return;
+    var pg=h.slice(1);if(!pg||pg==="anaekran"||items.some(function(i){return i[0]===pg}))return;
+    var sp=a.querySelector("span:last-child");items.push([pg,sp?sp.textContent:pg]);
+  });
+  return '<h3>Deneme sürümünde kapalı sayfalar</h3><p class="sub">İşaretlediğin sayfalar deneme sürümündeki üyelere kapalı olur: menüden kalkar, açılınca içerik görünmez. Form gönderme, oy verme, mazeret bildirme ve maç görseli oluşturma her zaman kapalıdır. Değişiklik <b>Yayınla</b>dan sonra herkeste geçerli olur.</p><div class="yzl">'+
+    items.map(function(i){return '<label class="ck"><input type="checkbox" data-denk value="'+esc(i[0])+'"'+(sec.indexOf(i[0])>=0?' checked':'')+'> '+esc(i[1])+'</label>'}).join("")+'</div>';
+}
+document.addEventListener("change",function(e){
+  var t=e.target;if(!t||!t.hasAttribute||!t.hasAttribute("data-denk"))return;
+  if(!admin()||altYon()||!ADM_D)return;
+  var l=[];document.querySelectorAll("input[data-denk]").forEach(function(c){if(c.checked)l.push(c.value)});
+  ADM_D.DENEMEKAPALI=l;admKaydet();
+});
 function denemeSatirHtml(m){
   if(!m.deneme)return "";
   var k=slug(m.kullanici||m.ad);
