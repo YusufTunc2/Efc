@@ -3735,9 +3735,12 @@ document.addEventListener("change",function(e){
   ADM_D.DENEMEKAPALI=l;admKaydet();
 });
 function denemeSatirHtml(m){
-  if(!m.deneme)return "";
   var k=slug(m.kullanici||m.ad);
-  return '<p class="sub" style="margin:6px 0">Deneme sürümü · süre ilk girişten başlar · Toplam hak: <input type="number" min="1" max="365" value="'+(+m.gun||0)+'" data-dengun="'+esc(k)+'" style="width:70px"> gün <button type="button" class="abtn alt" data-denbas="'+esc(k)+'" style="font-size:15px;padding:6px 12px;min-height:0">Sayacı sıfırla</button></p>';
+  if(!m.deneme){
+    if(slug(m.ad)==="eftal")return "";
+    return '<p class="sub" style="margin:6px 0">Normal üye · Deneme sürümüne geçir: <input type="number" min="1" max="365" value="3" data-dengun-yeni="'+esc(k)+'" style="width:70px"> gün <button type="button" class="abtn alt" data-dendeneme="'+esc(k)+'" style="font-size:15px;padding:6px 12px;min-height:0">Deneme sürümüne geçir</button></p>';
+  }
+  return '<p class="sub" style="margin:6px 0">Deneme sürümü · süre ilk girişten başlar · Toplam hak: <input type="number" min="1" max="365" value="'+(+m.gun||0)+'" data-dengun="'+esc(k)+'" style="width:70px"> gün <button type="button" class="abtn alt" data-denbas="'+esc(k)+'" style="font-size:15px;padding:6px 12px;min-height:0">Sayacı sıfırla</button> <button type="button" class="abtn" data-dennormal="'+esc(k)+'" style="font-size:15px;padding:6px 12px;min-height:0">Normal üyeliğe geçir</button></p>';
 }
 function denemeKaydet(k,gun,yeniden){
   if(!admin()||altYon()||!ADM_D)return;
@@ -3749,6 +3752,31 @@ function denemeKaydet(k,gun,yeniden){
   var ul=document.getElementById("uyeListe");if(ul)ul.innerHTML=uyeListeHtml();
 }
 document.addEventListener("change",function(e){var t=e.target,k=t&&t.getAttribute&&t.getAttribute("data-dengun");if(!k)return;denemeKaydet(k,+t.value,false)});
+function denemeYap(k){
+  if(!admin()||altYon()||!ADM_D)return;
+  if(!Array.isArray(ADM_D.EKUYE))ADM_D.EKUYE=[];
+  var m=MISAFIR.filter(function(x){return slug(x.kullanici||x.ad)===k})[0];if(!m||slug(m.ad)==="eftal")return;
+  var inp=document.querySelector('input[data-dengun-yeni="'+k+'"]'),gun=Math.round(inp?+inp.value:0);
+  if(!(gun>=1&&gun<=365)){alert("Gün sayısını 1 ile 365 arasında yaz.");return}
+  if(!confirm(m.ad+" deneme sürümüne geçecek: "+gun+" gün giriş hakkı (ilk girişinden başlar), bazı özellikler kapanır. Yayınla'dan sonra geçerli olur. Devam?"))return;
+  var e=ADM_D.EKUYE.filter(function(x){return slug(x.kullanici||x.ad)===k})[0];
+  if(!e){e={ad:m.ad,kullanici:String(m.kullanici||m.ad),email:String(m.email||""),bulanik:!!m.bulanik,acik:(m.acik||[]).slice(),o:1};if(Array.isArray(m.sansur))e.sansur=m.sansur.slice();ADM_D.EKUYE.push(e)}
+  e.deneme=true;e.gun=gun;e.bas=Date.now();
+  m.deneme=true;m.gun=gun;m.bas=e.bas;m.ilk=0;
+  admKaydet();
+  var ul=document.getElementById("uyeListe");if(ul)ul.innerHTML=uyeListeHtml();
+}
+function denemeNormal(k){
+  if(!admin()||altYon()||!ADM_D)return;
+  var m=MISAFIR.filter(function(x){return slug(x.kullanici||x.ad)===k})[0];if(!m||!m.deneme)return;
+  var e=(ADM_D.EKUYE||[]).filter(function(x){return slug(x.kullanici||x.ad)===k})[0];if(!e)return;
+  if(!confirm(m.ad+" deneme sürümünden çıkıp normal üye olacak (süre ve kısıtlamalar kalkar). Yayınla'dan sonra geçerli olur. Devam?"))return;
+  delete e.deneme;delete e.gun;delete e.bas;
+  m.deneme=false;m.gun=0;m.bas=0;m.ilk=0;
+  admKaydet();
+  var ul=document.getElementById("uyeListe");if(ul)ul.innerHTML=uyeListeHtml();
+}
+document.addEventListener("click",function(e){var n=e.target.closest&&e.target.closest("[data-dennormal]");if(n){denemeNormal(n.getAttribute("data-dennormal"));return}var y=e.target.closest&&e.target.closest("[data-dendeneme]");if(y)denemeYap(y.getAttribute("data-dendeneme"))});
 document.addEventListener("click",function(e){var b=e.target.closest&&e.target.closest("[data-denbas]");if(!b)return;denemeKaydet(b.getAttribute("data-denbas"),null,true)});
 
 function girAd(u){
@@ -5250,6 +5278,7 @@ function anketKart(a,r){
   var KOK=FB_URL.replace(/\/$/,""),ZAMAN={},SAYAC={},BEN={};
   var girisli=(typeof OTURUM!=="undefined"&&OTURUM&&typeof FB_KEY!=="undefined"&&FB_KEY);
   var benSl=girisli?slug(OTURUM.ad):"";
+  var oyHak=girisli&&!misafirBul(OTURUM.ad);   /* tahmin oyunu sadece güreşçilere açık, özel (misafir/deneme) üyeler oy veremez */
   function cift(a,b){return [slug(a),slug(b)].sort().join("_vs_")}
   function macId(a,b,n){return cift(a,b)+"_"+n}
   function yakinId(x){
@@ -5318,6 +5347,7 @@ function anketKart(a,r){
     var kapali=Date.parse(x.t)<=Date.now(),sen=BEN[id],h='';
     if(!sen&&!kapali){
       if(!girisli)return '<div class="tahmin-h">Sence kim kazanır?</div><div class="tahmin-s">Oy vermek için üye girişi gerekli.</div>';
+      if(!oyHak)return '<div class="tahmin-h">Sence kim kazanır?</div><div class="tahmin-s">Oy verme sadece güreşçilere açık.</div>';
       return '<div class="tahmin-h">Sence kim kazanır?<small>Oy verince sonuç açılır</small></div>'+
         '<div class="tahmin-b"><button type="button" data-p="'+esc(sa)+'">'+esc(x.a)+'</button><button type="button" data-p="'+esc(sb)+'">'+esc(x.b)+'</button></div><div class="tahmin-s" data-msg></div>';
     }
@@ -5347,7 +5377,7 @@ function anketKart(a,r){
   document.addEventListener("click",async function(e){
     var b=e.target.closest&&e.target.closest(".tahmin-b button[data-p]");if(!b)return;
     var box=b.closest(".tahmin"),li=b.closest("li.home-match"),i=Array.prototype.indexOf.call(kutular(),li),x=YAKIN[i];
-    if(!x||!box||!girisli)return;
+    if(!x||!box||!girisli||!oyHak)return;
     var id=box.getAttribute("data-id"),pick=b.getAttribute("data-p"),msg=box.querySelector("[data-msg]");
     if(Date.parse(x.t)<=Date.now()){msg.textContent="Maç başladı, oylama kapandı.";msg.className="tahmin-s err";return}
     if(!confirm((pick===slug(x.a)?x.a:x.b)+" kazanır diyorsun. Oy sonra değiştirilemez, onaylıyor musun?"))return;
