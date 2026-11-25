@@ -3515,36 +3515,36 @@ async function sonucGorsel(gi, kaynak){
   g.fillStyle="#0b0b0d";g.fillRect(0,0,W,H);
   var rg=g.createRadialGradient(W/2,430,60,W/2,430,900);rg.addColorStop(0,"#3a0a10");rg.addColorStop(1,"#0b0b0d");g.fillStyle=rg;g.fillRect(0,0,W,H);
   [[0,1],[110,.45],[190,.2]].forEach(function(o){g.fillStyle="rgba(229,2,9,"+o[1]+")";g.beginPath();g.moveTo(W-250+o[0],0);g.lineTo(W-130+o[0],0);g.lineTo(W-420+o[0],H);g.lineTo(W-540+o[0],H);g.closePath();g.fill()});
-  if(lg){var lw=180;g.drawImage(lg,70,70,lw,lw*lg.height/lg.width)}
-  g.textBaseline="alphabetic";g.textAlign="right";g.fillStyle="#f5f5f5";g.font="900 36px "+fam;g.fillText(gecerliMaç?"MAÇ SONUCU":"YAKIN MAÇ",W-70,110);
+  if(lg){var lw=160;g.drawImage(lg,70,70,lw,lw*lg.height/lg.width)}
+  g.textBaseline="alphabetic";g.textAlign="right";g.fillStyle="#f5f5f5";g.font="900 32px "+fam;g.fillText(gecerliMaç?"MAÇ SONUCU":"YAKIN MAÇ",W-70,100);
   var SK={hafif:"HAFİF SİKLET",orta:"ORTA SİKLET",agir:"AĞIR SİKLET"};
-  g.fillStyle="#a3a3ad";g.font="700 26px "+fam;g.fillText(SK[x.s]||"",W-70,150);
+  g.fillStyle="#a3a3ad";g.font="700 24px "+fam;g.fillText(SK[x.s]||"",W-70,136);
   if(x.d){
-    g.fillStyle="#e8c45e";g.font="700 22px "+fam;
-    var dt=x.d.toLocaleUpperCase("tr");metinSigdir(g,dt,55,W-160,700);g.fillText(dt,W-70,185);
+    g.fillStyle="#e8c45e";g.font="700 20px "+fam;
+    var dt=x.d.toLocaleUpperCase("tr");metinSigdir(g,dt,50,W-160,700);g.fillText(dt,W-70,168);
   }
-  var fotoY=240, fotoR=160, halka=8, isimY=440;
-  yuvarlakFoto(g,fA,x.a,W/2-250,fotoY,fotoR,halka,gecerliMaç&&kaz===x.a?kirmizi:altin);
-  yuvarlakFoto(g,fB,x.b,W/2+250,fotoY,fotoR,halka,gecerliMaç&&kaz===x.b?kirmizi:altin);
+  var fotoY=200, fotoR=140, halka=6, isimY=410;
+  yuvarlakFoto(g,fA,x.a,W/2-260,fotoY,fotoR,halka,gecerliMaç&&kaz===x.a?kirmizi:altin);
+  yuvarlakFoto(g,fB,x.b,W/2+260,fotoY,fotoR,halka,gecerliMaç&&kaz===x.b?kirmizi:altin);
   g.textBaseline="alphabetic";g.textAlign="center";
   if(gecerliMaç){
-    g.fillStyle=kirmizi;g.font="900 40px "+fam;g.fillText("KAZANAN",W/2,430);
-    g.fillStyle="#f5f5f5";var ad=kaz.toLocaleUpperCase("tr");metinSigdir(g,ad,140,W-160,900);g.fillText(ad,W/2,510);
-    g.fillStyle="#a3a3ad";g.font="700 32px "+fam;g.fillText(x.y==="hakem"?"HAKEM KARARI":"SUBMISSION",W/2,560);
+    g.fillStyle=kirmizi;g.font="900 36px "+fam;g.fillText("KAZANAN",W/2,380);
+    g.fillStyle="#f5f5f5";var ad=kaz.toLocaleUpperCase("tr");metinSigdir(g,ad,130,W-160,900);g.fillText(ad,W/2,450);
+    g.fillStyle="#a3a3ad";g.font="700 28px "+fam;g.fillText(x.y==="hakem"?"HAKEM KARARI":"SUBMISSION",W/2,495);
   }else{
-    g.fillStyle=altin;g.font="900 44px "+fam;g.fillText("VS",W/2,430);
-    g.fillStyle="#a3a3ad";g.font="700 26px "+fam;g.fillText("SIRADAKI KARŞILAŞMA",W/2,475);
+    g.fillStyle=altin;g.font="900 40px "+fam;g.fillText("VS",W/2,380);
+    g.fillStyle="#a3a3ad";g.font="700 24px "+fam;g.fillText("SIRADAKI KARŞILAŞMA",W/2,425);
   }
-  g.fillStyle="#f5f5f5";g.font="900 34px "+fam;
+  g.fillStyle="#f5f5f5";g.font="900 30px "+fam;
   var adA=x.a.toLocaleUpperCase("tr"),adB=x.b.toLocaleUpperCase("tr");
-  metinSigdir(g,adA,140,320,900);g.fillText(adA,W/2-250,isimY);
-  metinSigdir(g,adB,140,320,900);g.fillText(adB,W/2+250,isimY);
-  g.fillStyle="rgba(255,255,255,.12)";g.fillRect(100,isimY+50,W-200,2);
-  g.fillStyle=altin;g.font="700 24px "+fam;g.textAlign="center";
-  var lok="EFC GÜREŞ TURNUVASI";g.fillText(lok,W/2,isimY+110);
-  g.fillStyle="rgba(255,255,255,.3)";g.font="600 20px "+fam;g.fillText("efc.gures.turnuvasi",W/2,isimY+150);
+  metinSigdir(g,adA,120,320,900);g.fillText(adA,W/2-260,isimY);
+  metinSigdir(g,adB,120,320,900);g.fillText(adB,W/2+260,isimY);
+  g.fillStyle="rgba(255,255,255,.1)";g.fillRect(100,isimY+45,W-200,2);
+  g.fillStyle=altin;g.font="700 22px "+fam;g.textAlign="center";
+  var lok="EFC GÜREŞ TURNUVASI";g.fillText(lok,W/2,isimY+100);
+  g.fillStyle="rgba(255,255,255,.28)";g.font="600 18px "+fam;g.fillText("efc.gures.turnuvasi",W/2,isimY+135);
   g.fillStyle=kirmizi;g.fillRect(0,H-22,W,22);
-  g.textAlign="center";g.fillStyle="rgba(255,255,255,.4)";g.font="700 22px "+fam;g.fillText(location.hostname||"EFC",W/2,H-48);
+  g.textAlign="center";g.fillStyle="rgba(255,255,255,.4)";g.font="700 20px "+fam;g.fillText(location.hostname||"EFC",W/2,H-48);
   return new Promise(function(ok){c.toBlob(function(b){ok({blob:b,ad:"efc-"+(gecerliMaç?"sonuc":"yakın")+"-"+slug(x.a)+"-"+slug(x.b)+".png"})},"image/png")});
 }
 document.addEventListener("click",async function(e){
