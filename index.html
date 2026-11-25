@@ -1641,7 +1641,7 @@ function macListe(prefix,dizi,gecmis){
   ["hafif","orta","agir"].forEach(function(k){
     var l=dizi.filter(function(x){return x.s===k});
     document.getElementById(prefix+k.charAt(0).toUpperCase()+k.slice(1)).innerHTML=l.length?l.map(function(x){
-      var durum=gecmis?'<span class="match-status"><small>'+(x.d?esc(x.d)+' · ':'')+(x.y==="hakem"?"Hakem kararı":"Submission")+'</small><b>🏆 '+esc(x.k||"Kazanan belirtilmedi")+'</b>'+(gecmis&&x.k?'<button class="abtn alt sonuc-b" type="button" data-gi="'+GECMIS.indexOf(x)+'" style="margin-top:8px;padding:8px 12px;font-size:16px;min-height:36px">Görsel oluştur</button>':'')+'</span>':'<span class="match-status"><small>Karşılaşma</small><b>Tarih bekleniyor</b></span>';
+      var durum=gecmis?'<span class="match-status"><small>'+(x.d?esc(x.d)+' · ':'')+(x.y==="hakem"?"Hakem kararı":"Submission")+'</small><b>🏆 '+esc(x.k||"Kazanan belirtilmedi")+'</b>'+(gecmis&&x.k?'<button class="abtn alt sonuc-b" type="button" data-gi="'+GECMIS.indexOf(x)+'" data-kaynak="gecmis" style="margin-top:8px;padding:8px 12px;font-size:16px;min-height:36px">Görsel oluştur</button>':'')+'</span>':(x.k?'<span class="match-status" data-kaynak="mac"><small>'+(x.d?esc(x.d)+' · ':'')+(x.y==="hakem"?"Hakem kararı":"Submission")+'</small><b>🏆 '+esc(x.k)+'</b><button class="abtn alt sonuc-b" type="button" data-gi="'+MACLAR.indexOf(x)+'" data-kaynak="mac" style="margin-top:8px;padding:8px 12px;font-size:16px;min-height:36px">Görsel oluştur</button></span>':'<span class="match-status"><small>Karşılaşma</small><b>Tarih bekleniyor</b></span>');
       return '<li class="match-row '+(gecmis?'is-past':'is-upcoming')+'"><span class="match-weight">'+ETIKET[x.s]+'</span><div class="match-main">'+(gecmis?gecmisCift(x):cift(x,false))+'</div>'+durum+'</li>';
     }).join(""):'<li class="bos">Maç yok.</li>';
   });
@@ -3500,8 +3500,10 @@ function yuvarlakFoto(g,img,ad,cx,cy,r,halka,renk){
   g.beginPath();g.arc(cx,cy,r+halka/2,0,Math.PI*2);g.lineWidth=halka;g.strokeStyle=renk;g.stroke();
 }
 function metinSigdir(g,t,px,max,agirlik){var s=px;do{g.font=agirlik+" "+s+"px "+g.fam;if(g.measureText(t).width<=max)break;s-=4}while(s>40);return s}
-async function sonucGorsel(gi){
-  var x=GECMIS[gi];if(!x||!x.k)return null;
+async function sonucGorsel(gi, kaynak){
+  kaynak=kaynak||"gecmis";
+  var dizi=kaynak==="gecmis"?GECMIS:MACLAR;
+  var x=dizi[gi];if(!x||!x.k)return null;
   var kaz=x.k,kay=x.k===x.a?x.b:x.a;
   try{await document.fonts.ready}catch(e){}
   var cs=getComputedStyle(document.documentElement),fam=cs.getPropertyValue("--display").trim()||"Impact,sans-serif",kirmizi="#e50209";
@@ -3530,9 +3532,10 @@ async function sonucGorsel(gi){
 }
 document.addEventListener("click",async function(e){
   var b=e.target.closest&&e.target.closest(".sonuc-b");if(!b)return;
+  var kaynak=b.closest("[data-kaynak]")?.getAttribute("data-kaynak")||"gecmis";
   var yazi=b.textContent;b.disabled=true;b.textContent="Hazırlanıyor…";
   try{
-    var r=await sonucGorsel(+b.getAttribute("data-gi"));if(!r||!r.blob)throw new Error("görsel");
+    var r=await sonucGorsel(+b.getAttribute("data-gi"), kaynak);if(!r||!r.blob)throw new Error("görsel");
     var f=new File([r.blob],r.ad,{type:"image/png"});
     if(navigator.canShare&&navigator.canShare({files:[f]})){
       try{await navigator.share({files:[f],title:"EFC maç sonucu"})}
@@ -3542,7 +3545,7 @@ document.addEventListener("click",async function(e){
       setTimeout(function(){URL.revokeObjectURL(a.href)},4000);
     }
   }catch(er){
-    try{var r2=await sonucGorsel(+b.getAttribute("data-gi"));var a2=document.createElement("a");a2.href=URL.createObjectURL(r2.blob);a2.download=r2.ad;document.body.appendChild(a2);a2.click();a2.remove()}catch(x2){alert("Görsel oluşturulamadı.")}
+    try{var r2=await sonucGorsel(+b.getAttribute("data-gi"), kaynak);var a2=document.createElement("a");a2.href=URL.createObjectURL(r2.blob);a2.download=r2.ad;document.body.appendChild(a2);a2.click();a2.remove()}catch(x2){alert("Görsel oluşturulamadı.")}
   }
   b.disabled=false;b.textContent=yazi;
 });
