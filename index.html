@@ -1465,13 +1465,14 @@ function gecmisCift(x){
   return '<span class="pair yp sm">'+fg(x.a,ka?' win':' lose',av(x.a)+'<span class="fn">'+esc(x.a)+'</span>')+
     '<i>vs</i>'+fg(x.b,(kb?' win':' lose')+' r','<span class="fn">'+esc(x.b)+'</span>'+av(x.b))+'</span>';
 }
-document.getElementById("yakinList").innerHTML=YAKIN.map(function(x){
+document.getElementById("yakinList").innerHTML=YAKIN.map(function(x,i){
   var ert=!!x.ertelendi;
   return '<li class="home-match'+(ert?' ert':'')+'"><div class="hm-top"><span class="cls">'+ETIKET[x.s]+'</span><span class="hm-label">EFC · Sıradaki karşılaşma</span>'+(ert?'<span class="ert-chip">Ertelendi</span>':'')+'</div>'+yakinCift(x)+
     '<div class="zaman"><div class="tarih">'+esc(x.d)+'</div><div class="count" data-t="'+esc(x.t)+'"></div></div>'+ 
     '<div class="f2f"><div class="f2fh"><b>Face to face</b><span class="tarih">'+esc(f2fYazi(x.t))+'</span></div>'+ 
     '<div class="count" data-f="'+esc(f2fZaman(x.t).toISOString())+'" data-a="'+esc(x.a)+'" data-b="'+esc(x.b)+'"></div></div>'+ 
-    '<div class="hk">'+hk("Hakem",x.hakem)+hk("Teknik hakem",x.teknik)+'</div></li>';
+    '<div class="hk">'+hk("Hakem",x.hakem)+hk("Teknik hakem",x.teknik)+'</div>'+
+    '<div class="match-status" data-kaynak="yakin"><button class="abtn alt sonuc-b" type="button" data-gi="'+i+'" data-kaynak="yakin" style="margin-top:8px;padding:8px 12px;font-size:16px;min-height:36px">Görsel oluştur</button></div></li>';
 }).join("")||'<li class="bos">Yakında maç yok.</li>';
 
 /* Poster görünümü: sıradaki maçlar öne çıkan kartta, diğer maçlar prelims bölümünde */
@@ -3502,7 +3503,7 @@ function yuvarlakFoto(g,img,ad,cx,cy,r,halka,renk){
 function metinSigdir(g,t,px,max,agirlik){var s=px;do{g.font=agirlik+" "+s+"px "+g.fam;if(g.measureText(t).width<=max)break;s-=4}while(s>40);return s}
 async function sonucGorsel(gi, kaynak){
   kaynak=kaynak||"gecmis";
-  var dizi=kaynak==="gecmis"?GECMIS:MACLAR;
+  var dizi=kaynak==="gecmis"?GECMIS:(kaynak==="mac"?MACLAR:YAKIN);
   var x=dizi[gi];if(!x)return null;
   var kaz=x.k, kay=x.k===x.a?x.b:x.a, gecerliMaç=!!x.k;
   try{await document.fonts.ready}catch(e){}
