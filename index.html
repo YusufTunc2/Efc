@@ -280,6 +280,8 @@ a.fg:hover .av{border-color:var(--bone)}
 .ar-g{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:0 14px}
 .ar-b{display:flex;flex-wrap:wrap;gap:8px;margin:2px 0 8px}
 .ar-b .abtn{font-size:17px;padding:10px 14px}
+.adm-sonuc-note{grid-column:1/-1;margin:0;color:var(--muted);font-size:13px;line-height:1.45}
+.adm-sonuc-note b{color:var(--bone)}
 .adm-bar{position:fixed;left:max(12px,env(safe-area-inset-left,0px));bottom:calc(env(safe-area-inset-bottom,0px) + 12px);z-index:14;display:flex;align-items:center;gap:10px;background:rgba(22,22,26,.96);border:1px solid var(--line);border-left:3px solid var(--gold);padding:6px 6px 6px 12px;font:600 14px var(--body)}
 .adm-bar button{background:var(--base);color:var(--bone);border:1px solid var(--line);padding:6px 10px;font:600 13px var(--body);cursor:pointer}
 /* güreşçi profil sayfası */
@@ -1288,11 +1290,19 @@ function roller(ad){
   YONETIM.forEach(function(k){if(k.ad===ad)r.push({t:"Yönetim kurulu · "+k.g,h:"yonetim"})});
   return r.length?'<div class="pf-rol">'+r.map(function(o){return '<a class="rl" href="#'+o.h+'">'+esc(o.t)+'</a>'}).join("")+'</div>':'';
 }
+/* Maçın ertelenmiş olup olmadığı: yönetici panelinden yayınlanan alan ve mazeret onayından gelen imzalı kayıt birlikte kontrol edilir. */
+function macErtelendi(x){
+  if(!x)return false;
+  if(x.ertelendi)return true;
+  if(typeof ERT==="undefined"||!ERT||typeof ERTM==="undefined"||!ERTM)return false;
+  var i=YAKIN.indexOf(x);
+  return !!(i>=0&&ERTM[i]&&ERT[ERTM[i]]);
+}
 function profilCiz(w){
   var p=PROFIL[w.ad]||{yer:"Yakında",hikaye:["Bu güreşçinin hikâyesi yakında eklenecek."]};
   if(!p.yer||!(p.hikaye&&p.hikaye.length))p={yer:p.yer||"Yakında",hikaye:(p.hikaye&&p.hikaye.length)?p.hikaye:["Bu güreşçinin hikâyesi yakında eklenecek."],sarki:p.sarki};
   var toplam=w.g+w.m,oran=toplam?Math.round(w.g/toplam*100):0;
-  var sonraki=YAKIN.filter(function(x){return x.a===w.ad||x.b===w.ad}).slice().sort(function(a,b){return Date.parse(a.t)-Date.parse(b.t)})[0];
+  var sonraki=YAKIN.filter(function(x){return (x.a===w.ad||x.b===w.ad)&&!macErtelendi(x)}).slice().sort(function(a,b){return Date.parse(a.t)-Date.parse(b.t)})[0];
   var sonrakiHtml=sonraki?'<div class="pf-next"><small>Sıradaki karşılaşma</small><b>'+esc(sonraki.a===w.ad?sonraki.b:sonraki.a)+' ile karşılaşacak</b><span>'+ETIKET[sonraki.s]+' · '+esc(sonraki.d||"Tarih bekleniyor")+'</span></div>':'';
   var son=GECMIS.filter(function(x){return x.a===w.ad||x.b===w.ad}).slice().reverse().slice(0,5);
   var sonHtml=son.length?'<div class="pf-son"><h3>Son maçları</h3><div class="pf-son-list">'+son.map(function(x){var rakip=x.a===w.ad?x.b:x.a,kazandi=x.k===w.ad;return '<div class="pf-son-row"><div><span>'+esc(rakip)+'</span><small>'+ETIKET[x.s]+'</small></div><span class="pf-result '+(kazandi?'win':'loss')+'">'+(kazandi?'GALİBİYET':'MAĞLUBİYET')+'</span></div>'}).join('')+'</div></div>':'<div class="pf-son"><h3>Son maçları</h3><p class="bos">Henüz kayıtlı maç bulunmuyor.</p></div>';
@@ -1456,7 +1466,8 @@ function gecmisCift(x){
     '<i>vs</i>'+fg(x.b,(kb?' win':' lose')+' r','<span class="fn">'+esc(x.b)+'</span>'+av(x.b))+'</span>';
 }
 document.getElementById("yakinList").innerHTML=YAKIN.map(function(x){
-  return '<li class="home-match"><div class="hm-top"><span class="cls">'+ETIKET[x.s]+'</span><span class="hm-label">EFC · Sıradaki karşılaşma</span></div>'+yakinCift(x)+
+  var ert=!!x.ertelendi;
+  return '<li class="home-match'+(ert?' ert':'')+'"><div class="hm-top"><span class="cls">'+ETIKET[x.s]+'</span><span class="hm-label">EFC · Sıradaki karşılaşma</span>'+(ert?'<span class="ert-chip">Ertelendi</span>':'')+'</div>'+yakinCift(x)+
     '<div class="zaman"><div class="tarih">'+esc(x.d)+'</div><div class="count" data-t="'+esc(x.t)+'"></div></div>'+ 
     '<div class="f2f"><div class="f2fh"><b>Face to face</b><span class="tarih">'+esc(f2fYazi(x.t))+'</span></div>'+ 
     '<div class="count" data-f="'+esc(f2fZaman(x.t).toISOString())+'" data-a="'+esc(x.a)+'" data-b="'+esc(x.b)+'"></div></div>'+ 
@@ -1465,12 +1476,12 @@ document.getElementById("yakinList").innerHTML=YAKIN.map(function(x){
 
 /* Poster görünümü: sıradaki maçlar öne çıkan kartta, diğer maçlar prelims bölümünde */
 function afisMac(x){
-  return '<article class="poster-fight"><div class="poster-pair">'+
+  return '<article class="poster-fight'+(x.ertelendi?' ert':'')+'"><div class="poster-pair">'+
     '<div class="poster-fighter">'+av(x.a)+'<span class="fn">'+esc(x.a)+'</span></div>'+
     '<span class="poster-vs">VS</span>'+
     '<div class="poster-fighter">'+av(x.b)+'<span class="fn">'+esc(x.b)+'</span></div>'+
     '</div><div class="poster-weight">'+esc(ETIKET[x.s]||x.s||"Karşılaşma")+'</div>'+
-    (x.d?'<div class="poster-date">'+esc(x.d)+'</div>':'')+'</article>';
+    (x.d?'<div class="poster-date">'+esc(x.d)+'</div>':'')+(x.ertelendi?'<div class="poster-ert">Ertelendi</div>':'')+'</article>';
 }
 document.getElementById("afisMain").innerHTML=YAKIN.length?YAKIN.map(afisMac).join(""):'<div class="poster-empty">Henüz ana kart maçı belirlenmedi.</div>';
 document.getElementById("afisPre").innerHTML=MACLAR.length?MACLAR.map(afisMac).join(""):'<div class="poster-empty">Henüz ön karşılaşma eklenmedi.</div>';
@@ -1588,7 +1599,7 @@ function silKur(div){
 function afisCiz(){
   var el=document.getElementById("afis");if(!el)return;
   var now=Date.now(),m=null;
-  YAKIN.slice().sort(function(x,y){return Date.parse(x.t)-Date.parse(y.t)}).some(function(x){if(Date.parse(x.t)>now){m=x;return true}});
+  YAKIN.slice().sort(function(x,y){return Date.parse(x.t)-Date.parse(y.t)}).some(function(x){if(Date.parse(x.t)>now&&!macErtelendi(x)){m=x;return true}});
   var bas='<h2 class="afis-bas">Maç ve güreş heyecanını <span class="afis-logo" role="img" aria-label="EFC"></span>’de yaşa</h2>';
   if(!m){
     el.innerHTML='<div class="afis-in">'+bas+'<div class="afis-alt"><div class="afis-kim">Yeni maçlar yakında</div></div></div>';
@@ -1630,7 +1641,7 @@ function macListe(prefix,dizi,gecmis){
   ["hafif","orta","agir"].forEach(function(k){
     var l=dizi.filter(function(x){return x.s===k});
     document.getElementById(prefix+k.charAt(0).toUpperCase()+k.slice(1)).innerHTML=l.length?l.map(function(x){
-      var durum=gecmis?'<span class="match-status"><small>'+(x.y==="hakem"?"Hakem kararı":"Submission")+'</small><b>🏆 '+esc(x.k||"Kazanan belirtilmedi")+'</b>'+(gecmis&&x.k?'<button class="abtn alt sonuc-b" type="button" data-gi="'+GECMIS.indexOf(x)+'" style="margin-top:8px;padding:8px 12px;font-size:16px;min-height:36px">Görsel oluştur</button>':'')+'</span>':'<span class="match-status"><small>Karşılaşma</small><b>Tarih bekleniyor</b></span>';
+      var durum=gecmis?'<span class="match-status"><small>'+(x.d?esc(x.d)+' · ':'')+(x.y==="hakem"?"Hakem kararı":"Submission")+'</small><b>🏆 '+esc(x.k||"Kazanan belirtilmedi")+'</b>'+(gecmis&&x.k?'<button class="abtn alt sonuc-b" type="button" data-gi="'+GECMIS.indexOf(x)+'" style="margin-top:8px;padding:8px 12px;font-size:16px;min-height:36px">Görsel oluştur</button>':'')+'</span>':'<span class="match-status"><small>Karşılaşma</small><b>Tarih bekleniyor</b></span>';
       return '<li class="match-row '+(gecmis?'is-past':'is-upcoming')+'"><span class="match-weight">'+ETIKET[x.s]+'</span><div class="match-main">'+(gecmis?gecmisCift(x):cift(x,false))+'</div>'+durum+'</li>';
     }).join(""):'<li class="bos">Maç yok.</li>';
   });
@@ -1691,7 +1702,7 @@ function varsayilanT(){
   return new Date(Date.now()+7*864e5).toLocaleDateString("sv-SE",{timeZone:"Europe/Istanbul"})+"T10:00:00+03:00";
 }
 function admKopya(){
-  function c(x){var o={s:x.s,a:x.a,b:x.b};if(x.t){o.t=x.t;o.d=x.d||tarihMetni(x.t)}if(x.k)o.k=x.k;if(x.y)o.y=x.y;return o}
+  function c(x){var o={s:x.s,a:x.a,b:x.b};if(x.t){o.t=x.t;o.d=x.d||tarihMetni(x.t)}if(x.k)o.k=x.k;if(x.y)o.y=x.y;if(x.ertelendi)o.ertelendi=true;return o}
   function cp(o){return JSON.parse(JSON.stringify(o))}
   return {YAKIN:YAKIN.map(c),MACLAR:MACLAR.map(c),GECMIS:GECMIS.map(c),GURESCILER:GURESCILER.map(function(w){return {ad:w.ad,s:w.s}}),HAKEMLER:HAKEMLER.slice(),ANTRENORLER:ANTRENORLER.map(function(c){return {ad:c.ad}}),ANTRENOR:cp(ANTRENOR),YONETIM:cp(YONETIM),INSTAGRAM:cp(INSTAGRAM),PROFIL:cp(PROFIL),FOTO:cp(FOTO),HAKKINDA:HAKKINDA.slice(),MUZIK:MUZIK.map(function(m){return {ad:m.ad,dosya:m.dosya}}),GIRISMUZIK:GMUZIK.map(function(m){return {ad:m.ad,dosya:m.dosya}}),YETKILI:cp(YETKILI),PROFILIZIN:profIzin(PROFILIZIN),ANKET:cp(ANKET),EKUYE:cp((VERI&&Array.isArray(VERI.EKUYE))?VERI.EKUYE:[]),MISAFIRSIL:cp((VERI&&Array.isArray(VERI.MISAFIRSIL))?VERI.MISAFIRSIL:[]),DENEMEKAPALI:cp((VERI&&Array.isArray(VERI.DENEMEKAPALI))?VERI.DENEMEKAPALI:["istek","mactalebi"])};
 }
@@ -1724,13 +1735,22 @@ function admSatir(l,x,i){
     h+='<label>Kazanan<select data-k="k"><option value="'+esc(x.a)+'"'+(x.k===x.a?' selected':'')+'>'+esc(x.a)+'</option>'+
        '<option value="'+esc(x.b)+'"'+(x.k===x.b?' selected':'')+'>'+esc(x.b)+'</option></select></label>'+
        '<label>Yöntem<select data-k="y">'+admYontem(x.y)+'</select></label>';
+  }else if(l==="yakin"){
+    h+='<label>Maç sonucu — kazanan<select data-tmp="k"><option value="">Sonuç seçilmedi</option>'+
+       '<option value="'+esc(x.a)+'">'+esc(x.a)+'</option><option value="'+esc(x.b)+'">'+esc(x.b)+'</option></select></label>'+
+       '<label>Sonuç yöntemi<select data-tmp="y">'+admYontem("")+'</select></label>'+
+       '<p class="adm-sonuc-note">'+(x.ertelendi?'<span class="chip bek">Maç ertelendi</span> ':'')+'Sonucu kaydedince maç <b>Yakın maçlar</b> listesinden çıkarılıp <b>Geçmiş maçlar</b> listesine eklenir. Puan tablosu da otomatik güncellenir. Maçın yeni tarihi girilirse erteleme etiketi otomatik kaldırılır.</p>';
   }else{
     h+='<label>Sonuç: kazanan<select data-tmp="k"><option value="">Henüz oynanmadı</option>'+
        '<option value="'+esc(x.a)+'">'+esc(x.a)+'</option><option value="'+esc(x.b)+'">'+esc(x.b)+'</option></select></label>'+
        '<label>Sonuç: yöntem<select data-tmp="y">'+admYontem("")+'</select></label>';
   }
   h+='</div><div class="ar-b">';
-  if(!gc)h+='<button class="abtn" type="button" data-act="sonuc">Sonucu kaydet</button>';
+  if(l==="yakin"){
+    h+='<button class="abtn'+(x.ertelendi?' alt':'')+'" type="button" data-act="'+(x.ertelendi?'ert-kaldir':'ertele')+'">'+(x.ertelendi?'Erteleme durumunu kaldır':'Maçı ertele')+'</button>';
+    h+='<button class="abtn" type="button" data-act="sonuc">Sonucu kaydet ve geçmişe taşı</button>';
+  }
+  else if(!gc)h+='<button class="abtn" type="button" data-act="sonuc">Sonucu kaydet</button>';
   if(l==="mac")h+='<button class="abtn alt" type="button" data-act="yakina">Yakın maçlara taşı</button>';
   return h+'<button class="abtn alt" type="button" data-act="sil">Sil</button></div></div>';
 }
@@ -1920,13 +1940,15 @@ document.addEventListener("change",function(e){
   if(!x||!k)return;
   if(k==="s"){
     var g=ag().filter(function(w){return w.s===v}).map(function(w){return w.ad});
-    x.s=v;x.a=g[0];x.b=g[1]||g[0];if(l==="gecmis"){x.k=x.a}
+    x.s=v;x.a=g[0];x.b=g[1]||g[0];if(l==="gecmis"){x.k=x.a}else if(l==="yakin")delete x.ertelendi;
   }else if(k==="a"||k==="b"){
     if(v===x[k==="a"?"b":"a"])alert("İki güreşçi aynı olamaz.");
-    else{x[k]=v;if(l==="gecmis"&&x.k!==x.a&&x.k!==x.b)x.k=x.a}
+    else{x[k]=v;if(l==="gecmis"&&x.k!==x.a&&x.k!==x.b)x.k=x.a;else if(l==="yakin")delete x.ertelendi}
   }else if(k==="t"){
     if(!v)return;
-    x.t=v+":00+03:00";x.d=tarihMetni(x.t);
+    var nt=v+":00+03:00";
+    if(l==="yakin"&&x.t!==nt)delete x.ertelendi;
+    x.t=nt;x.d=tarihMetni(x.t);
   }else if(k==="k")x.k=v;
   else if(k==="y"){if(v)x.y=v;else delete x.y}
   admKaydet();admCiz();window.scrollTo(0,y0);
@@ -1964,11 +1986,24 @@ document.addEventListener("click",function(e){
     if(act==="sil"){if(!confirm("Bu maç silinsin mi?"))return;dz.splice(i,1)}
     else if(act==="yakina"){
       dz.splice(i,1);x.t=varsayilanT();x.d=tarihMetni(x.t);ADM_D.YAKIN.push(x);
+    }else if(act==="ertele"){
+      if(!confirm(x.a+" - "+x.b+" maçı ertelendi olarak işaretlensin mi?\n\nMaç kartında herkese “Ertelendi” yazacak. Değişikliği görmek için ardından Yayınla düğmesine basmalısın."))return;
+      x.ertelendi=true;
+    }else if(act==="ert-kaldir"){
+      if(!confirm(x.a+" - "+x.b+" maçındaki erteleme durumu kaldırılsın mı?"))return;
+      delete x.ertelendi;
     }else if(act==="sonuc"){
-      var kz=row.querySelector('[data-tmp="k"]').value,y=row.querySelector('[data-tmp="y"]').value;
-      if(!kz){alert("Önce kazananı seç.");return}
+      var ks=row.querySelector('[data-tmp="k"]'),ys=row.querySelector('[data-tmp="y"]');
+      var kz=ks?ks.value:"",y=ys?ys.value:"";
+      if(!kz){alert("Önce maçın kazananını seç.");return}
+      if(kz!==x.a&&kz!==x.b){alert("Kazanan, bu maçın güreşçilerinden biri olmalı.");return}
+      if(l==="yakin"){
+        var yontem=y==="hakem"?"Hakem kararı":"Submission";
+        if(!confirm(x.a+" - "+x.b+" maçının sonucu "+kz+" ("+yontem+") olarak kaydedilsin mi?\n\nMaç yakın maçlardan çıkarılıp geçmiş maçlara eklenecek. Sonuçları herkese göstermek için ardından Yayınla düğmesine basmalısın."))return;
+      }
       dz.splice(i,1);
       var s={s:x.s,a:x.a,b:x.b,k:kz};if(y)s.y=y;
+      if(l==="yakin"&&x.t){s.t=x.t;s.d=x.d||tarihMetni(x.t)}
       ADM_D.GECMIS.push(s);
     }else return;
   }else return;
@@ -3246,6 +3281,7 @@ async function ertelemeYukle(){
     }catch(e){}
   }
   mazeretCiz();
+  afisCiz();
 }
 async function mazeretDurum(kutu,mid){
   var d=kutu.querySelector(".mzr-d");if(!d)return;
@@ -3263,7 +3299,7 @@ function mazeretCiz(){
   if(window.anaYenile)anaYenile();
   document.querySelectorAll("#yakinList li.home-match").forEach(function(li,i){
     var x=YAKIN[i];if(!x)return;
-    var mid=ERTM[i],ert=!!(mid&&ERT[mid]),top=li.querySelector(".hm-top"),ch=li.querySelector(".ert-chip");
+    var mid=ERTM[i],ert=macErtelendi(x),top=li.querySelector(".hm-top"),ch=li.querySelector(".ert-chip");
     li.classList.toggle("ert",ert);
     if(ert&&!ch&&top)top.insertAdjacentHTML("beforeend",'<span class="ert-chip">Ertelendi</span>');
     if(!ert&&ch)ch.remove();
@@ -3277,7 +3313,7 @@ function mazeretCiz(){
     if(kutu){var bb=kutu.querySelector(".mzr-b");if(bb)bb.style.display=ert?"none":"";mazeretDurum(kutu,mid)}
   });
   document.querySelectorAll("#afisMain .poster-fight").forEach(function(a,i){
-    var mid=ERTM[i],ert=!!(mid&&ERT[mid]),c=a.querySelector(".poster-ert");
+    var mid=ERTM[i],ert=macErtelendi(x),c=a.querySelector(".poster-ert");
     a.classList.toggle("ert",ert);
     if(ert&&!c)a.insertAdjacentHTML("beforeend",'<div class="poster-ert">Ertelendi</div>');
     if(!ert&&c)c.remove();
@@ -3329,7 +3365,7 @@ function ozelBantYaz(){
   OZEL_GUNLER.concat(OZEL_EK).forEach(function(o){
     if(o[0]===t.d&&o[1]===t.m){h+='<div class="ozel-bant'+(o[4]==="y"?" yas":"")+'"><b>'+esc(o[2])+'</b>'+esc(o[3])+'</div>';if(o[5])gri=true}
   });
-  var bg=YAKIN.filter(function(x){return x.t&&new Date(Date.parse(x.t)).toLocaleDateString("en-CA",{timeZone:"Europe/Istanbul"})===t.s&&!ERT[ERTM[YAKIN.indexOf(x)]]});
+  var bg=YAKIN.filter(function(x){return x.t&&new Date(Date.parse(x.t)).toLocaleDateString("en-CA",{timeZone:"Europe/Istanbul"})===t.s&&!macErtelendi(x)});
   if(bg.length)h+='<div class="ozel-bant mac"><b>Bugün maç günü</b>'+bg.length+' maç var: '+bg.map(function(x){return esc(x.a)+' - '+esc(x.b)}).join(', ')+'</div>';
   b.innerHTML=h;
   document.documentElement.classList.toggle("ozel-yas",gri);
@@ -3339,7 +3375,7 @@ function anaYenile(){
   var now=Date.now(),sr=document.getElementById("siradaki");
   if(sr){
     var en=null;
-    YAKIN.forEach(function(x,i){var t=Date.parse(x.t);if(t>now&&!ERT[ERTM[i]]&&(!en||t<Date.parse(en.t)))en=x});
+    YAKIN.forEach(function(x,i){var t=Date.parse(x.t);if(t>now&&!macErtelendi(x)&&(!en||t<Date.parse(en.t)))en=x});
     var k=en?en.a+"|"+en.b+"|"+en.t:"";
     if(sr.getAttribute("data-k")!==k){
       sr.setAttribute("data-k",k);
@@ -3575,7 +3611,7 @@ async function bildirimKontrol(){
     if(x.a!==OTURUM.ad&&x.b!==OTURUM.ad)return;
     var mid=ERTM[i];if(!mid)return;
     var rakip=x.a===OTURUM.ad?x.b:x.a,kal=Date.parse(x.t)-now;
-    if(ERT[mid]){
+    if(macErtelendi(x)){
       if(!bnGet(mid+":ert")){bnSet(mid+":ert");bildirimGonder("Maçın ertelendi",x.a+" - "+x.b+" maçı ertelendi. Yeni zamanı yönetim bildirecek.","ert-"+mid)}
       return;
     }
